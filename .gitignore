@@ -2,3 +2,4 @@
 */__pycache__/
 venvs
 *.egg-info
+.DS_Store
