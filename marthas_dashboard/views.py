@@ -4,6 +4,7 @@ import json
 import requests
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
+from .api import API
 from .plotting import (make_bar_chart, make_poly_line)
 from bokeh.plotting import figure
 import pandas as pd
@@ -70,16 +71,17 @@ def poly():
 
 @app.route('/live')
 def live():
-    r = requests.get('http://energycomps.its.carleton.edu/api/index.php/values/point/230/2016-08-18/2017-08-19')
-    data = pd.read_json(r.text)
-    data['pointtimestamp'] = pd.to_datetime(data['pointtimestamp'])
-    fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime")
-    fig.line(data['pointtimestamp'], data['pointvalue'], color="navy", alpha=0.5)
-    script, div = components(fig)
-    html = flask.render_template(
-        'chart.html',
-        plot_script=script,
-        plot_div=div,
-        color='navy'
-    )
-    return encode_utf8(html)
+    api = API()
+    data = api.point_values('511', '2016-08-18', '2017-08-19')
+    if(len(data) > 1):
+        fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime")
+        fig.line(data['pointtimestamp'], data['pointvalue'], color="navy", alpha=0.5)
+        script, div = components(fig)
+        html = flask.render_template(
+            'chart.html',
+            plot_script=script,
+            plot_div=div,
+            color='navy'
+        )
+        return encode_utf8(html)
+    return 'No Data For that Point'
