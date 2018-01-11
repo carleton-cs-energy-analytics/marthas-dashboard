@@ -3,6 +3,7 @@ from flask import (request, redirect, url_for, render_template)
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
+from bokeh.models import HoverTool
 from .api import API
 
 api = API()
@@ -37,10 +38,20 @@ def live():
         # See: http://flask.pocoo.org/docs/0.12/patterns/flashing/
         return "No data for that point"
 
-    fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime")
-    fig.line(data['pointtimestamp'], data['pointvalue'], color="navy", alpha=0.5)
-    script, div = components(fig)
+    # Make figure
+    hover = HoverTool(
+        tooltips=[('date', '$x'), ('y', '$y')],
+        formatters={'date': 'datetime'},
+        mode='vline',
+    )
+    tools = ['pan', 'box_zoom', 'wheel_zoom', 'save', 'reset', 'lasso_select', hover]
 
+    fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime", tools=tools)
+    fig.line(data['pointtimestamp'], data['pointvalue'], color="navy", alpha=0.5)
+    fig.toolbar.logo = None
+
+    # Embed figure in template
+    script, div = components(fig)
     html = render_template(
         'menu_chart.html',
         plot_script=script,
