@@ -1,13 +1,10 @@
 from marthas_dashboard import app
 import flask
-import json
-import requests
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
+from bokeh.plotting import figure
 from .api import API
 from .plotting import (make_bar_chart, make_poly_line)
-from bokeh.plotting import figure
-import pandas as pd
 
 
 @app.route('/')
@@ -69,11 +66,12 @@ def poly():
     )
     return encode_utf8(html)
 
+
 @app.route('/live')
 def live():
     api = API()
     data = api.point_values('511', '2016-08-18', '2017-08-19')
-    if(len(data) > 1):
+    if len(data) > 1:
         fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime")
         fig.line(data['pointtimestamp'], data['pointvalue'], color="navy", alpha=0.5)
         script, div = components(fig)

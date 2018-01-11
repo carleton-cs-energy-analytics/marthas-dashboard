@@ -28,7 +28,7 @@ export FLASK_DEBUG=true
 # do "editable install" of package
 pip install -e .
 
-#run flask
+# Launch it
 flask run
 ```
 
