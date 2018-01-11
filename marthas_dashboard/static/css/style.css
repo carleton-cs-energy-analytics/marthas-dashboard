@@ -1,0 +1,37 @@
+body {
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
+
+h1, h2, p {
+    font-family: "Arial Black", Gadget, sans-serif;
+}
+
+h1 a:hover {
+    color: #4691A4;
+    text-decoration: overline;
+}
+
+h1 a {
+    color: black;
+    text-decoration: overline;
+}
+
+.container {
+    border-radius: 5px;
+    background-color: #f2f2f2;
+    padding: 20px;
+    max-width: 600px;
+}
+
+.container input[type=submit], .container input[type=button]{
+    background: #4B99AD;
+    padding: 8px 15px 8px 15px;
+    border: none;
+    color: #fff;
+}
+.container input[type=submit]:hover, .container input[type=button]:hover{
+    background: #4691A4;
+    box-shadow:none;
+    -moz-box-shadow:none;
+    -webkit-box-shadow:none;
+}

@@ -81,6 +81,7 @@ class API:
 
     def query_url(self, route_params):
         endpoint = "/".join(route_params)
+
         url = self.base_url + endpoint
         r = requests.get(url)
 
@@ -105,4 +106,5 @@ if __name__ == "__main__":
     print(pts)
 
     data = api.point_values('511', '2016-08-18', '2017-08-19')
-    print(data)
+    print(data.head())
+    print(data.tail())
