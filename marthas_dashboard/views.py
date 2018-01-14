@@ -1,85 +1,64 @@
 from marthas_dashboard import app
-import flask
+from flask import (request, redirect, url_for, render_template)
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
+from bokeh.models import HoverTool
 from .api import API
-from .plotting import (make_bar_chart, make_poly_line)
+
+api = API()
 
 
 @app.route('/')
 def index():
-    return 'Hello World!'
-
-
-@app.route('/bar')
-def bar():
-    """
-    Simpler example
-    Based on: https://github.com/realpython/flask-bokeh-example
-    """
-    fig = make_bar_chart()
-
-    # render template
-    script, div = components(fig)
-    html = flask.render_template(
-        'chart.html',
-        plot_script=script,
-        plot_div=div,
-    )
-    return encode_utf8(html)
-
-
-def getitem(obj, item, default):
-    if item not in obj:
-        return default
-    else:
-        return obj[item]
-
-
-@app.route('/poly')
-def poly():
-    """
-    Slightly more complex example
-    Based on: https://github.com/bokeh/bokeh/tree/master/examples/embed/simple
-    """
-
-    # Grab the inputs arguments from the URL
-    args = flask.request.args
-
-    # Get all the form arguments in the url with defaults
-    color = getitem(args, 'color', 'Black')
-    _from = int(getitem(args, '_from', 0))
-    to = int(getitem(args, 'to', 10))
-
-    # make plot
-    fig = make_poly_line(color, _from, to)
-
-    script, div = components(fig)
-    html = flask.render_template(
-        'poly.html',
-        plot_script=script,
-        plot_div=div,
-        color=color,
-        _from=_from,
-        to=to
-    )
-    return encode_utf8(html)
+    return redirect(url_for('live'))
 
 
 @app.route('/live')
 def live():
-    api = API()
-    data = api.point_values('511', '2016-08-18', '2017-08-19')
-    if len(data) > 1:
-        fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime")
-        fig.line(data['pointtimestamp'], data['pointvalue'], color="navy", alpha=0.5)
-        script, div = components(fig)
-        html = flask.render_template(
-            'chart.html',
-            plot_script=script,
-            plot_div=div,
-            color='navy'
-        )
-        return encode_utf8(html)
-    return 'No Data For that Point'
+    building_names = {'2': 'Libe'}
+    pt_names = {
+        "511": "LAB HOT H2O TEMP",
+        "512": "A1 CCL TEMP",
+        "513": "AH2 AIR VOLU",
+        "514": "STATIC SET",
+    }
+
+    # Get arguments from URL, if any
+    args = request.args
+    building = args.get('building', default='2')
+    point = args.get('point', default='511')
+    start_date = args.get('_from', default='2016-08-18')
+    end_date = args.get('to', default='2017-08-19')
+
+    data = api.point_values(point, start_date, end_date)
+
+    if len(data) <= 1:
+        # Todo: Implement flask "flash" here
+        # See: http://flask.pocoo.org/docs/0.12/patterns/flashing/
+        return "No data for that point"
+
+    # Make figure
+    hover = HoverTool(
+        tooltips=[('date', '$x'), ('y', '$y')],
+        formatters={'date': 'datetime'},
+        mode='vline',
+    )
+    tools = ['pan', 'box_zoom', 'wheel_zoom', 'save', 'reset', 'lasso_select', hover]
+
+    fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime", tools=tools)
+    fig.line(data['pointtimestamp'], data['pointvalue'], color="navy", alpha=0.5)
+    fig.toolbar.logo = None
+
+    # Embed figure in template
+    script, div = components(fig)
+    html = render_template(
+        'menu_chart.html',
+        plot_script=script,
+        plot_div=div,
+        building_name=building_names[building],
+        point_name=pt_names[point],
+        start_date=start_date,
+        end_date=end_date,
+    )
+    return encode_utf8(html)

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% block pl_script %}
-  {{ plot_script|indent(4)|safe }}
+    {{ plot_script|indent(4)|safe }}
 {% endblock %}
 
 {% block content %}
-  {% block more_content %}{% endblock %}
-  {{ plot_div|indent(4)|safe }}
+    {% block more_content %}{% endblock %}
+    {{ plot_div|indent(4)|safe }}
 {% endblock %}
