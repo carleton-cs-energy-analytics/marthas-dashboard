@@ -23,14 +23,14 @@ class API:
 
     def building_rooms(self, building_id):
         """
-        :param building_id:
+        :param building_id:building_id: eg, '4'
         :return: pd.DataFrame [buildingid, id, name]
         """
         return self.query_url(['building', building_id, 'rooms'])
 
     def building_points(self, building_id):
         """
-        :param building_id:
+        :param building_id: building_id: eg, '4'
         :return: pd.DataFrame [description, id, name, pointsourceid, pointtypeid, roomid]
         """
         return self.query_url(['building', building_id, 'points'])
@@ -38,8 +38,10 @@ class API:
     def building_points_by_type(self, building_id, point_type):
         """
         :param building_id: eg, '4'
-        :param point_type: ??
-        :return:
+        :param point_type: A point type ID 
+        as sourced from a query like http://energycomps.its.carleton.edu/api/index.php/building/4/points 
+        eg 13 for temperature points 
+        :return:pd.DataFrame [description, id, name, pointsourceid, pointtypeid, roomid]
         """
         return self.query_url(['building', building_id, 'points', point_type])
 
@@ -55,27 +57,44 @@ class API:
     def point_value(self, point_id, timestamp):
         """
         :param point_id: eg, '528'
-        :param timestamp: ??
-        :return:
+        :param timestamp: eg, 2017-08-18 00:45:00
+        :return:pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
         """
         return self.query_url(['value', 'point', point_id, timestamp])
 
     def building_values_in_range(self, building_id, start, end):
         """
-        :param building_id:
-        :param start:
-        :param end:
+        param building_id: eg, '4'
+        :param start: eg, '2017-08-19'
+        :param end: eg, '2017-08-19'
         :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
         """
         return self.query_url(['values', 'building', building_id, start, end])
+
+    def building_values_at_time(self, building_id, timestamp):
+        """
+        :param building_id:
+        :param timestamp: eg, 2017-08-18 00:45:00
+        :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
+        """
+        return self.query_url(['values', 'building', building_id, timestamp])
+    def values_at_time(self,timestamp):
+        """
+        :param building_id: eg, '4'
+        :param timestamp: eg, 2017-08-18 00:45:00
+        :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
+        """
+        return self.query_url(['values', timestamp])
 
     def building_values_in_range_by_type(self, building_id, start, end, point_type):
         """
         :param building_id: eg, '4'
         :param start: eg, '2016-08-18'
         :param end: eg, '2017-08-19'
-        :param point_type: ??
-        :return:
+        :param point_type: A point type ID 
+        as sourced from a query like http://energycomps.its.carleton.edu/api/index.php/building/4/points 
+        eg 13 for heating 
+        :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
         """
         return self.query_url(['values', 'building', building_id, start, end, point_type])
 
