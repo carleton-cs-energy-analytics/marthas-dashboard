@@ -25,9 +25,6 @@ pip install bokeh flask
 export FLASK_APP=marthas_dashboard
 export FLASK_DEBUG=true
 
-# do "editable install" of package
-pip install -e .
-
 # Launch it
 flask run
 ```
