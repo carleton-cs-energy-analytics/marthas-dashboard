@@ -1,3 +1,15 @@
+.add-comparison{
+    float: right;
+}
+div.comparison{
+    float: right;
+}
+.hidden {
+    display: none;
+}
+div.original {
+    float: left;
+}
 body {
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }

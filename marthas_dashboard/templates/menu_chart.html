@@ -1,7 +1,8 @@
-{% extends "chart.html" %}
-
-{% block more_content %}
+{% macro chart_element(building_name, point_name, start_date, end_date, first_el = False) -%}
     <div class="container" xmlns="http://www.w3.org/1999/html">
+        {% if first_el %}
+            <button class="add-comparison">+ Add Comparison</button>
+        {% endif %}
         <form name="color_button" method='GET'>
             <label>Building</label>
             <select name="building">
@@ -22,5 +23,6 @@
             <br>
             <input type="submit" value="Submit"/>
         </form>
+
     </div>
-{% endblock %}
+{% endmacro %}
