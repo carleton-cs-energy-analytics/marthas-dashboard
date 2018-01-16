@@ -8,23 +8,23 @@
 
 {% block content %}
     <div class="original">
-        {{ chart_element(building_names[0], point_names[0], start_dates[0], end_dates[0], False, True)}}
+        {{ chart_element(building_names[0], point_names[0], start_dates[0], end_dates[0], True)}}
         {{ plot_divs[0]|indent(4)|safe }}
     </div>
-    <div class="comparison">
-        {{ chart_element(building_names[1], point_names[1], start_dates[1], end_dates[1], comparison_hidden)}}
+    <div class="comparison {% if comparison_hidden %} hidden {%endif %}">
+        {{ chart_element(building_names[1], point_names[1], start_dates[1], end_dates[1])}}
         {{ plot_divs[1]|indent(4)|safe }}
     </div>
 
 {% endblock %}
 
 
-{% macro chart_element(building_name, point_name, start_date, end_date, hidden = False, first_el = False) -%}
-    <div class="container {% if hidden %} hidden {%endif %}" xmlns="http://www.w3.org/1999/html">
+{% macro chart_element(building_name, point_name, start_date, end_date, first_el = False) -%}
+    <div class="container" xmlns="http://www.w3.org/1999/html">
         {% if first_el %}
             <button class="add-comparison">+ Add Comparison</button>
         {% endif %}
-        <form name="color_button" method='GET'>
+        <form name="color_button" class="filter_data" method='GET'>
             <label>Building</label>
             <select name="building">
                 <option {{ "selected" if building_name|indent(4)|safe == "Libe" }} value="2">Library</option>
@@ -42,7 +42,7 @@
             <label>To</label>
             <input type="date" name="to" value="{{ end_date }}">
             <br>
-            <input type="submit" value="Submit"/>
+            <input class="form_submit" type="submit" value="Submit"/>
         </form>
 
     </div>

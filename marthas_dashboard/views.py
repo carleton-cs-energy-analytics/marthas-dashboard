@@ -42,12 +42,13 @@ def live():
     script, div = components(fig)
     html = render_template(
         'chart.html',
-        plot_script=[script, script],
-        plot_div=[div, div],
+        plot_scripts=[script, script],
+        plot_divs=[div, div],
         building_names=[building_names[building], building_names[building]],
         point_names=[pt_names[point],pt_names[point]],
         start_dates=[start_date, start_date],
         end_dates=[end_date,end_date],
+        comparison_hidden = True
     )
     return encode_utf8(html)
 
