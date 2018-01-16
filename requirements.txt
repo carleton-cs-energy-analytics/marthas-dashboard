@@ -2,3 +2,5 @@ flask
 bokeh
 requests
 pandas
+sklearn
+graphviz
