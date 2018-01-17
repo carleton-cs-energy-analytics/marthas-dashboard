@@ -1,49 +1,60 @@
 {% extends "base.html" %}
 
 {% block pl_script %}
-    {{ plot_scripts[0]|indent(4)|safe }}
-    {{ plot_scripts[1]|indent(4)|safe }}
+
+    {% for item in components %}
+        {{ item.script|indent(4)|safe }}
+        {% if loop.length <= 1 %}
+            {{ item.script|indent(4)|safe }}
+        {% endif %} 
+    {% endfor %}
 
 {% endblock %}
 
 {% block content %}
-    <div class="original">
-        {{ chart_element(building_names[0], point_names[0], start_dates[0], end_dates[0], True)}}
-        {{ plot_divs[0]|indent(4)|safe }}
-    </div>
-    <div class="comparison {% if comparison_hidden %} hidden {%endif %}">
-        {{ chart_element(building_names[1], point_names[1], start_dates[1], end_dates[1])}}
-        {{ plot_divs[1]|indent(4)|safe }}
-    </div>
+    {% for item in components %}
+        {{ search_result(item, loop.index0, False, loop.length <= 1)}}
+        {% if loop.length <= 1 %}
+            {# add a second instance of this item that we can hide and show when we add a comparison #}
+            {{ search_result(item, loop.index0 + 1, True)}}
+        {% endif %}
+
+    {% endfor %}
 
 {% endblock %}
 
 
-{% macro chart_element(building_name, point_name, start_date, end_date, first_el = False) -%}
-    <div class="container" xmlns="http://www.w3.org/1999/html">
-        {% if first_el %}
-            <button class="add-comparison">+ Add Comparison</button>
-        {% endif %}
-        <form name="color_button" class="filter_data" method='GET'>
-            <label>Building</label>
-            <select name="building">
-                <option {{ "selected" if building_name|indent(4)|safe == "Libe" }} value="2">Library</option>
-            </select>
-            <label>Point name</label>
-            <select name="point">
-                <option {{ "selected" if point_name|indent(4)|safe == "LAB HOT H2O TEMP" }} value="511">LAB HOT H2O TEMP</option>
-                <option {{ "selected" if point_name|indent(4)|safe == "A1 CCL TEMP" }} value="512">A1 CCL TEMP</option>
-                <option {{ "selected" if point_name|indent(4)|safe == "AH2 AIR VOLU" }} value="513">AH2 AIR VOLU</option>
-                <option {{ "selected" if point_name|indent(4)|safe == "STATIC SET" }} value="514">STATIC SET</option>
-            </select>
-            <br>
-            <label>From</label>
-            <input type="date" name="_from" value="{{ start_date }}">
-            <label>To</label>
-            <input type="date" name="to" value="{{ end_date }}">
-            <br>
-            <input class="form_submit" type="submit" value="Submit"/>
-        </form>
+{% macro search_result(data, i, hide = False, show_comparison_button = False) -%}
+    <div class="result-{{i}} {% if hide %} hidden {% endif %} {% if i > 0 %} comparison {% else %} original {% endif %}">
+        <div class="container">
+            
+            <button class="add-comparison {% if not show_comparison_button %} hidden {% endif%} right">+ Add Comparison</button>
+            
+            <span class="close-comparison {% if i < 1 %} hidden {% endif %}right">X</span>
+            
+            <form name="{{i}}" class="filter_data" method='GET'>
+                <label>Building</label>
+                <select name="{{i}}_building">
+                    <option {{ "selected" if data.building|indent(4)|safe == "Libe" }} value="2">Library</option>
+                </select>
+                <label>Point name</label>
+                {{data.point}}
+                <select name="{{i}}_point">
+                    <option {{ "selected" if data.point|indent(4)|safe == '511' }} value="511">LAB HOT H2O TEMP</option>
+                    <option {{ "selected" if data.point|indent(4)|safe == '512' }} value="512">A1 CCL TEMP</option>
+                    <option {{ "selected" if data.point|indent(4)|safe == '513' }} value="513">AH2 AIR VOLU</option>
+                    <option {{ "selected" if data.point|indent(4)|safe == '514' }} value="514">STATIC SET</option>
+                </select>
+                <br>
+                <label>From</label>
+                <input type="date" name="{{i}}_from" value="{{ data.from }}">
+                <label>To</label>
+                <input type="date" name="{{i}}_to" value="{{ data.to }}">
+                <br>
+                <button class="form_submit">Submit</button>
+            </form> 
 
+        </div>
+        {{ data.plot |indent(4)|safe }}
     </div>
 {% endmacro %}
