@@ -5,6 +5,7 @@ from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
 from bokeh.models import HoverTool
 from .api import API
+import json
 
 api = API()
 
@@ -16,13 +17,7 @@ def index():
 
 @app.route('/search')
 def search():
-    building_names = {'2': 'Libe'}
-    pt_names = {
-        "511": "LAB HOT H2O TEMP",
-        "512": "A1 CCL TEMP",
-        "513": "AH2 AIR VOLU",
-        "514": "STATIC SET",
-    }
+    building_names = api.buildings()
 
     searches = create_search_bins(request.args)
 
@@ -33,13 +28,20 @@ def search():
         searches[0]['point'] = '511'
         searches[0]['from'] = '2016-08-18'
         searches[0]['to'] = '2017-08-19'
-
+    # do our searches and get the coponents we need to inject there
     search_results = do_searches(searches)
-    components = get_components(searches, search_results)
+    results_components = get_results_components(searches, search_results)
+
+    # get our json for all rooms and points
+    # so that we can change the values of the select fields based on other values
+    rooms_points = get_rooms_points(building_names)
+    json = rooms_points_json(rooms_points)
 
     html = render_template(
         'chart.html',
-        components = components,
+        buildings = building_names,
+        scripts = json,
+        result_components = results_components,
         hide_comparison = (len(searches) < 2)
     )
     return encode_utf8(html)
@@ -90,13 +92,24 @@ def do_searches(search_bins):
 
 # from all of our data
 # generates plots, scripts and everything that we actually need to inject into the page
-def get_components(searches, search_results):
-    search_results = do_searches(searches)
+def get_results_components(searches, search_results):
     parts = []
+    # each search result has a plot, script, and form params
+    # we want to create a list of dictionaries
+    # where each item in the outer list is a search result
+    # and each in the inner dictionary is a component of that search result, 
+    # ie el['plot'] stores the html code for the graph
     for i in range(len(search_results)):
         result = search_results[i]
+        # as a default we want all the restrictions that the user specified
+        # already have these in our searches, so just copy them over
         result_components = searches[i]
+        # we also want all of the buildings points so that we can select the correct one
+        print(api.building_rooms(result_components['building']))
+
+        result_components['point_names'] = map_points(api.building_points(result_components['building']))
         if len(result) <= 1:
+            # no data associated with search, makes it easy
             result_components['plot'] = 'No data for that search'
             result_components['script'] = ''
         else:
@@ -105,4 +118,33 @@ def get_components(searches, search_results):
         parts.append(result_components)
     return parts
 
+# maps building ids to their points and rooms
+# ie {4:{'rooms':{5}}}
+def get_rooms_points(buildings):
+    print(buildings)
+    result = {}
+    for building_id, name in buildings.items():
+        building_data = {
+            'rooms':map_rooms(api.building_rooms(building_id)),
+            'points':map_points(api.building_points(building_id))
+        }
+        result[building_id] = building_data
+    return result
 
+# Simple mapping function to take a pandas df returned from building_points
+# and turn it into something easier to use on the frontend
+def map_points(points):
+    results = {}
+    for index, row in points.iterrows():
+        results[row['id']] = row['name']+'- '+row['description']
+    return results
+
+# similar to the map_points function but for rooms
+def map_rooms(rooms):
+    results = {}
+    for index, row in rooms.iterrows():
+        results[row['id']] = row['name'].replace("_", " ")
+    return results
+
+def rooms_points_json(rooms_points):
+    return '<script type="text/javascript">var rooms_points ='+json.dumps(rooms_points)+';</script>'

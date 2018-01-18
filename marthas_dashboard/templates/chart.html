@@ -2,17 +2,18 @@
 
 {% block pl_script %}
 
-    {% for item in components %}
+    {% for item in result_components %}
         {{ item.script|indent(4)|safe }}
         {% if loop.length <= 1 %}
             {{ item.script|indent(4)|safe }}
         {% endif %} 
     {% endfor %}
+    {{ scripts|safe }}
 
 {% endblock %}
 
 {% block content %}
-    {% for item in components %}
+    {% for item in result_components %}
         {{ search_result(item, loop.index0, False, loop.length <= 1)}}
         {% if loop.length <= 1 %}
             {# add a second instance of this item that we can hide and show when we add a comparison #}
@@ -34,16 +35,17 @@
             
             <form name="{{i}}" class="filter_data" method='GET'>
                 <label>Building</label>
-                <select name="{{i}}_building">
-                    <option {{ "selected" if data.building|indent(4)|safe == "Libe" }} value="2">Library</option>
+                {{data.building}}
+                <select class="building_select" name="{{i}}_building">
+                    {% for id, name in buildings.items() %}
+                        <option {{ "selected" if data.building|int == id|int }} value="{{id}}">{{name}}</option>
+                    {% endfor %}
                 </select>
                 <label>Point name</label>
-                {{data.point}}
-                <select name="{{i}}_point">
-                    <option {{ "selected" if data.point|indent(4)|safe == '511' }} value="511">LAB HOT H2O TEMP</option>
-                    <option {{ "selected" if data.point|indent(4)|safe == '512' }} value="512">A1 CCL TEMP</option>
-                    <option {{ "selected" if data.point|indent(4)|safe == '513' }} value="513">AH2 AIR VOLU</option>
-                    <option {{ "selected" if data.point|indent(4)|safe == '514' }} value="514">STATIC SET</option>
+                <select class="point_selector" name="{{i}}_point">
+                    {% for id,name in data.point_names.items() %}
+                    <option {{ "selected" if data.point|int == id|int }} value="{{id}}">{{name}}</option>
+                    {% endfor %}
                 </select>
                 <br>
                 <label>From</label>
