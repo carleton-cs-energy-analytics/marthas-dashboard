@@ -27,7 +27,7 @@
 
 {% macro search_result(data, i, hide = False, show_comparison_button = False) -%}
     <div class="result-{{i}} {% if hide %} hidden {% endif %} {% if i > 0 %} comparison {% else %} original {% endif %}">
-        <div class="container">
+        <div class="params-container">
             
             <button class="add-comparison {% if not show_comparison_button %} hidden {% endif%} right">+ Add Comparison</button>
             
@@ -35,7 +35,6 @@
             
             <form name="{{i}}" class="filter_data" method='GET'>
                 <label>Building</label>
-                {{data.building}}
                 <select class="building_select" name="{{i}}_building">
                     {% for id, name in buildings.items() %}
                         <option {{ "selected" if data.building|int == id|int }} value="{{id}}">{{name}}</option>

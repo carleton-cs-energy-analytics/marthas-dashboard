@@ -27,20 +27,20 @@ h1 a {
     text-decoration: overline;
 }
 
-.container {
+.params-container {
     border-radius: 5px;
     background-color: #f2f2f2;
     padding: 20px;
     max-width: 600px;
 }
 
-.container input[type=submit], .container input[type=button]{
+.params-container input[type=submit], .params-container input[type=button]{
     background: #4B99AD;
     padding: 8px 15px 8px 15px;
     border: none;
     color: #fff;
 }
-.container input[type=submit]:hover, .container input[type=button]:hover{
+.params-container input[type=submit]:hover, .params-container input[type=button]:hover{
     background: #4691A4;
     box-shadow:none;
     -moz-box-shadow:none;
@@ -48,4 +48,27 @@ h1 a {
 }
 .close-comparison:hover{
     cursor: pointer;
+}
+.sidebar-menu{
+    list-style: none;
+}
+.sidebar-menu li{
+    font-size: 1.5em;
+    padding: 10px;
+    text-align: center;
+    border-bottom: 2px solid black;
+    margin: 0;
+}
+body{
+    margin: 0px;
+}
+.sidebar{
+    width:inherit;
+    position: fixed;
+    height: 100vh;
+    border-right: 2px solid black;
+    background-color: #c6c6c6;
+}
+.site-title{
+    padding: 10px 0px;
 }

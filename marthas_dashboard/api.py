@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+import datetime as DT
 
 
 class API:
@@ -114,6 +115,8 @@ class API:
         for col in self.datecolumns:
             if col in df:
                 df[col] = pd.to_datetime(df[col])
+                df['date'] = df[col].dt.strftime('%Y-%m-%d')
+                df['time'] = df[col].dt.strftime('%H:%M')
         return df
 
 # Just for experimenting!

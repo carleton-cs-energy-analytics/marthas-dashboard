@@ -4,6 +4,15 @@ from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
 from bokeh.models import HoverTool
+from bokeh.models import (
+    ColumnDataSource,
+    HoverTool,
+    LinearColorMapper,
+    BasicTicker,
+    PrintfTickFormatter,
+    ColorBar,
+)
+from bokeh.palettes import Greys
 from .api import API
 import json
 
@@ -27,7 +36,8 @@ def search():
         searches[0]['building'] = '2'
         searches[0]['point'] = '511'
         searches[0]['from'] = '2016-08-18'
-        searches[0]['to'] = '2017-08-19'
+        searches[0]['to'] = '2017-08-20'
+
     # do our searches and get the coponents we need to inject there
     search_results = do_searches(searches)
     results_components = get_results_components(searches, search_results)
@@ -46,19 +56,34 @@ def search():
     )
     return encode_utf8(html)
 
-def generate_figure(x, y):
-    # Make figure
-    hover = HoverTool(
-        tooltips=[('date', '$x'), ('y', '$y')],
-        formatters={'date': 'datetime'},
-        mode='vline',
-    )
-    tools = ['pan', 'box_zoom', 'wheel_zoom', 'save', 'reset', 'lasso_select', hover]
+def generate_figure(data):
+    mapper = LinearColorMapper(palette=Greys[256], low=data['pointvalue'].max(), high=data['pointvalue'].min())
+    source = ColumnDataSource(data)
+    dates = list(set(list(data['date'])))
+    times = list(set(list(data['time'])))
+    TOOLS = "hover,save,pan,box_zoom,reset,wheel_zoom"
+    p = figure(title="US Unemployment",
+       y_range=dates, x_range=list(reversed(times)),
+       x_axis_location="above", plot_width=1000, plot_height=700,
+       tools=TOOLS, toolbar_location='below')
+    p.grid.grid_line_color = None
+    p.axis.axis_line_color = None
+    p.axis.major_tick_line_color = None
+    p.axis.major_label_text_font_size = "5pt"
+    p.axis.major_label_standoff = 0
+    p.xaxis.major_label_orientation = 3.14 / 3    
 
-    fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime", tools=tools)
-    fig.line(x, y, color="navy", alpha=0.5)
-    fig.toolbar.logo = None
-    return fig
+    p.rect(x="time", y="date", width=1, height=1,
+           source=data,
+           fill_color={'field': 'pointvalue', 'transform': mapper},
+           line_color=None) 
+
+    print(data)
+    p.select_one(HoverTool).tooltips = [
+         ('date', '@date @time'),
+         ('pointvalue', '@pointvalue '+data['units'][0]),
+    ]
+    return p
     # Embed figure in template
 
 
@@ -105,7 +130,6 @@ def get_results_components(searches, search_results):
         # already have these in our searches, so just copy them over
         result_components = searches[i]
         # we also want all of the buildings points so that we can select the correct one
-        print(api.building_rooms(result_components['building']))
 
         result_components['point_names'] = map_points(api.building_points(result_components['building']))
         if len(result) <= 1:
@@ -113,7 +137,7 @@ def get_results_components(searches, search_results):
             result_components['plot'] = 'No data for that search'
             result_components['script'] = ''
         else:
-            fig = generate_figure(result['pointtimestamp'], result['pointvalue'])
+            fig = generate_figure(result)
             result_components['script'], result_components['plot'] = components(fig)
         parts.append(result_components)
     return parts
@@ -121,7 +145,6 @@ def get_results_components(searches, search_results):
 # maps building ids to their points and rooms
 # ie {4:{'rooms':{5}}}
 def get_rooms_points(buildings):
-    print(buildings)
     result = {}
     for building_id, name in buildings.items():
         building_data = {
