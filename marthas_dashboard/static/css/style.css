@@ -1,3 +1,15 @@
+.right{
+    float: right;
+}
+div.comparison{
+    float: right;
+}
+.hidden {
+    display: none;
+}
+div.original {
+    float: left;
+}
 body {
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
@@ -33,4 +45,7 @@ h1 a {
     box-shadow:none;
     -moz-box-shadow:none;
     -webkit-box-shadow:none;
+}
+.close-comparison:hover{
+    cursor: pointer;
 }
