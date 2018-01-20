@@ -21,11 +21,11 @@ api = API()
 
 @app.route('/')
 def index():
-    return redirect(url_for('search'))
+    return redirect(url_for('compare'))
 
 
-@app.route('/search')
-def search():
+@app.route('/compare')
+def compare():
     building_names = api.buildings()
 
     searches = create_search_bins(request.args)
@@ -52,11 +52,48 @@ def search():
         buildings = building_names,
         scripts = json,
         result_components = results_components,
-        hide_comparison = (len(searches) < 2)
+        allow_comparisons = True
+    )
+    return encode_utf8(html)
+@app.route('/heatmap')
+def heatmap():
+    building_names = api.buildings()
+
+    searches = create_search_bins(request.args)
+
+    if len(searches) < 1:
+        searches[0] = {}
+        # Just set some defaults if we didn't have any searches
+        searches[0]['building'] = '2'
+        searches[0]['point'] = '511'
+        searches[0]['from'] = '2016-08-18'
+        searches[0]['to'] = '2017-08-20'
+    searches = [searches[0]]
+
+    # do our searches and get the coponents we need to inject there
+    search_results = do_searches(searches)
+    results_components = get_results_components(searches, search_results, 'heatmap')
+
+    # get our json for all rooms and points
+    # so that we can change the values of the select fields based on other values
+    rooms_points = get_rooms_points(building_names)
+    json = rooms_points_json(rooms_points)
+
+    html = render_template(
+        'chart.html',
+        buildings = building_names,
+        scripts = json,
+        result_components = results_components,
+        allow_comparisons = False
     )
     return encode_utf8(html)
 
-def generate_figure(data):
+def generate_figure(data, graph_type):
+    if graph_type == 'heatmap':
+        return generate_heatmap(data)
+    return generate_line_graph(data)
+
+def generate_heatmap(data):
     mapper = LinearColorMapper(palette=Greys[256], low=data['pointvalue'].max(), high=data['pointvalue'].min())
     source = ColumnDataSource(data)
     dates = list(set(list(data['date'])))
@@ -78,7 +115,6 @@ def generate_figure(data):
            fill_color={'field': 'pointvalue', 'transform': mapper},
            line_color=None) 
 
-    print(data)
     p.select_one(HoverTool).tooltips = [
          ('date', '@date @time'),
          ('pointvalue', '@pointvalue '+data['units'][0]),
@@ -86,6 +122,22 @@ def generate_figure(data):
     return p
     # Embed figure in template
 
+def generate_line_graph(data):
+    x = data['pointtimestamp']
+    y = data['pointvalue']
+    # Make figure
+    hover = HoverTool(
+        tooltips=[('date', '$x'), ('y', '$y')],
+        formatters={'date': 'datetime'},
+        mode='vline',
+    )
+    tools = ['pan', 'box_zoom', 'wheel_zoom', 'save', 'reset', 'lasso_select', hover]
+
+    fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime", tools=tools)
+    fig.line(x, y, color="navy", alpha=0.5)
+    fig.toolbar.logo = None
+    return fig
+    # Embed figure in template
 
 def create_search_bins(args):
     search_bins = {}
@@ -117,7 +169,7 @@ def do_searches(search_bins):
 
 # from all of our data
 # generates plots, scripts and everything that we actually need to inject into the page
-def get_results_components(searches, search_results):
+def get_results_components(searches, search_results, graphtype='line'):
     parts = []
     # each search result has a plot, script, and form params
     # we want to create a list of dictionaries
@@ -137,7 +189,7 @@ def get_results_components(searches, search_results):
             result_components['plot'] = 'No data for that search'
             result_components['script'] = ''
         else:
-            fig = generate_figure(result)
+            fig = generate_figure(result, graphtype)
             result_components['script'], result_components['plot'] = components(fig)
         parts.append(result_components)
     return parts

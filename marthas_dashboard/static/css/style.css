@@ -59,6 +59,10 @@ h1 a {
     border-bottom: 2px solid black;
     margin: 0;
 }
+.sidebar-menu a{
+    text-decoration: none;
+    color: black;
+}
 body{
     margin: 0px;
 }

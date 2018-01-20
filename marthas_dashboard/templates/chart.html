@@ -4,7 +4,7 @@
 
     {% for item in result_components %}
         {{ item.script|indent(4)|safe }}
-        {% if loop.length <= 1 %}
+        {% if loop.length <= 1 and allow_comparisons %}
             {{ item.script|indent(4)|safe }}
         {% endif %} 
     {% endfor %}
@@ -14,8 +14,8 @@
 
 {% block content %}
     {% for item in result_components %}
-        {{ search_result(item, loop.index0, False, loop.length <= 1)}}
-        {% if loop.length <= 1 %}
+        {{ search_result(item, loop.index0, False, loop.length <= 1 and allow_comparisons)}}
+        {% if loop.length <= 1 and allow_comparisons%}
             {# add a second instance of this item that we can hide and show when we add a comparison #}
             {{ search_result(item, loop.index0 + 1, True)}}
         {% endif %}
