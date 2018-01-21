@@ -1,10 +1,61 @@
 {% extends "base.html" %}
 
 {% block pl_script %}
-    {{ plot_script|indent(4)|safe }}
+
+    {% for item in result_components %}
+        {{ item.script|indent(4)|safe }}
+        {% if loop.length <= 1 and allow_comparisons %}
+            {{ item.script|indent(4)|safe }}
+        {% endif %} 
+    {% endfor %}
+    {{ scripts|safe }}
+
 {% endblock %}
 
 {% block content %}
-    {% block more_content %}{% endblock %}
-    {{ plot_div|indent(4)|safe }}
+    {% for item in result_components %}
+        {{ search_result(item, loop.index0, False, loop.length <= 1 and allow_comparisons)}}
+        {% if loop.length <= 1 and allow_comparisons%}
+            {# add a second instance of this item that we can hide and show when we add a comparison #}
+            {{ search_result(item, loop.index0 + 1, True)}}
+        {% endif %}
+
+    {% endfor %}
+
 {% endblock %}
+
+
+{% macro search_result(data, i, hide = False, show_comparison_button = False) -%}
+    <div class="result-{{i}} {% if hide %} hidden {% endif %} {% if i > 0 %} comparison {% else %} original {% endif %}">
+        <div class="params-container">
+            
+            <button class="add-comparison {% if not show_comparison_button %} hidden {% endif%} right">+ Add Comparison</button>
+            
+            <span class="close-comparison {% if i < 1 %} hidden {% endif %}right">X</span>
+            
+            <form name="{{i}}" class="filter_data" method='GET'>
+                <label>Building</label>
+                <select class="building_select" name="{{i}}_building">
+                    {% for id, name in buildings.items() %}
+                        <option {{ "selected" if data.building|int == id|int }} value="{{id}}">{{name}}</option>
+                    {% endfor %}
+                </select>
+                <label>Point name</label>
+                <select class="point_selector" name="{{i}}_point">
+                    {% for id,name in data.point_names.items() %}
+                    <option {{ "selected" if data.point|int == id|int }} value="{{id}}">{{name}}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <label>From</label>
+                <input type="date" name="{{i}}_from" value="{{ data.from }}">
+                <label>To</label>
+                <input type="date" name="{{i}}_to" value="{{ data.to }}">
+                <br>
+                <button class="form_submit">Submit</button>
+            </form> 
+
+        </div>
+        {{ data.plot |indent(4)|safe }}
+    </div>
+{% endmacro %}

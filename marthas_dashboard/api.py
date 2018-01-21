@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+import datetime as DT
 
 
 class API:
@@ -12,7 +13,10 @@ class API:
         """
         :return: pd.Series [name, buildingid]
         """
-        return self.query_url(['buildings'])
+        buildings = self.query_url(['buildings'])
+        buildings = buildings.to_dict()
+        # flip the map so that its id => name
+        return {v: k for k, v in buildings.items()}
 
     def building(self, name):
         """
@@ -99,11 +103,10 @@ class API:
         return self.query_url(['values', 'building', building_id, start, end, point_type])
 
     def query_url(self, route_params):
-        endpoint = "/".join(route_params)
+        endpoint = "/".join(str(v) for v in route_params)
 
         url = self.base_url + endpoint
         r = requests.get(url)
-
         try:
             df = pd.read_json(r.text)
         except ValueError:
@@ -112,6 +115,8 @@ class API:
         for col in self.datecolumns:
             if col in df:
                 df[col] = pd.to_datetime(df[col])
+                df['date'] = df[col].dt.strftime('%Y-%m-%d')
+                df['time'] = df[col].dt.strftime('%H:%M')
         return df
 
 # Just for experimenting!
