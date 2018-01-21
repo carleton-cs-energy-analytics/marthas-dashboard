@@ -1,5 +1,7 @@
-*/.idea/
+*.idea/
 */__pycache__/
 venvs
 *.egg-info
 .DS_Store
+*.pyc
+*ipynb_checkpoints*
