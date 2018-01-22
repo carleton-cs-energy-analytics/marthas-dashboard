@@ -32,9 +32,9 @@ def getDFBuildingValuesInRange(building_id, start_date_time, stop_date_time):
 
     #TODO remove?, this is so that it runs faster
     # --> without this removal, it takes >2 hrs (not exactly sure havent run the whole thing)
-    for column in df_pivot:
-        if "HU" in column:
-            df_pivot.drop([column], axis=1, inplace=True)
+    # for column in df_pivot:
+    #     if "HU" in column:
+    #         df_pivot.drop([column], axis=1, inplace=True)
 
     return df_pivot
 
@@ -86,7 +86,8 @@ def getClassItems(data_table, mapping):
                    for item, var, _ in OneHot.decode(mapping, data_table, mapping)
                    if var in data_table.domain.variables}
 
-    print("Sorted Class items:\n", sorted(class_items))
+    sorted(class_items)
+    # print("Class items:\n", class_items)
 
     return class_items
 
@@ -103,7 +104,7 @@ def getAssociationRules(itemsets, class_items):
 
     print("Length of rules is: ", len(rules))
 
-    print("Rules are:\n{}\n\n".format(rules))
+    # print("Rules are:\n{}\n\n".format(rules))
 
     return rules
 
@@ -114,10 +115,9 @@ def pretty_print_rules(data_table, mapping, rules):
     '''
     names = {item: '{}={}'.format(var.name, val)
         for item, var, val in OneHot.decode(mapping, data_table, mapping)}
-    print("Names is:\n{}\n\n".format(names))
+    print("Names is:\n{}\n".format(names))
 
-
-    print("READABLE RULES??? \n\n")
+    print("READABLE RULES\n")
     for ante, cons, supp, conf in rules:
         print(', '.join(names[i] for i in ante), '-->',
         names[next(iter(cons))],
@@ -130,7 +130,7 @@ def main():
     class_items = getClassItems(data_table, mapping)
 
     itemsets = dict(frequent_itemsets(X, .4))
-    print("Length itemsets:", len(itemsets))
+    print("Length of frequent itemsets:", len(itemsets))
     rules = getAssociationRules(itemsets, class_items)
 
     pretty_print_rules(data_table, mapping, rules)
