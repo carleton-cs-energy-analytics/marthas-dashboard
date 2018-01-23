@@ -107,25 +107,50 @@ def format_labels(labels_series, is_numeric, num_bins = 0):
 
 
 def hulings_energy_decision_tree():
-    # still waiting for lucid data in database to finish this
+    # get data from database
     api_wrapper = API()
     siemens_raw_df = api_wrapper.building_values_in_range("4", "2017-08-19 00:00:00", "2017-08-19 23:45:00")
     lucid_raw_df = api_wrapper.building_values_in_range("6", "2017-08-19 00:00:00", "2017-08-19 23:45:00")
-    print(lucid_raw_df.columns.values)
 
+    # realign dataframes
     siemens_df = (siemens_raw_df
               .groupby(['pointtimestamp', 'pointname'])['pointvalue']
               .sum().unstack().reset_index()
               .set_index('pointtimestamp'))
-
     lucid_df = (lucid_raw_df
               .groupby(['pointtimestamp', 'pointname'])['pointvalue']
               .sum().unstack().reset_index()
               .set_index('pointtimestamp'))
 
-    #lucid_label = lucid_df[:,"Hulings Hall - Hulings Hall - Electricity (kWh)"]
+    # only need one set of lucid data for labels/classes
+    lucid_label = lucid_df["Hulings Hall - Electricity "]
 
-    #print(lucid_label)
+    features_df = siemens_df.join(lucid_label, how="inner")
+
+    # clean up data
+    features_df = drop_non_numeric_columns(features_df, 0.8)
+    features_df = drop_non_numeric_rows(features_df)
+
+    labels = features_df.pop("Hulings Hall - Electricity ")
+    labels = pd.qcut(labels, 4)
+    labels_list = labels.tolist()
+    labels_list = to_string(labels_list)
+
+    class_names = set(labels_list)
+    class_names = sorted(list(class_names))
+
+    clf_gini = tree.DecisionTreeClassifier(criterion="gini", random_state=100,
+                                           max_depth=3, min_samples_leaf=5)
+    clf_gini.fit(features_df, labels_list)
+
+    dot_data = tree.export_graphviz(clf_gini, out_file=None,
+                                    feature_names=features_df.columns.values,
+                                    class_names=class_names,
+                                    filled=True, rounded=True,
+                                    special_characters=True)
+    graph = graphviz.Source(dot_data)
+    graph.render("test_tree_hulings_gini")
+
 
 
 
