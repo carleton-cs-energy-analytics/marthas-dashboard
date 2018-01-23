@@ -7,6 +7,7 @@ from orangecontrib.associate.fpgrowth import *
 from orangecontrib.associate import frequent_itemsets, association_rules
 from Orange.data import Domain, Table, DiscreteVariable, ContinuousVariable
 from Orange.preprocess import Discretize, discretize
+import sys
 
 # Where I got how to do this
 # https://github.com/biolab/orange3-associate/blob/master/orangecontrib/associate/fpgrowth.py
@@ -30,11 +31,17 @@ def getDFBuildingValuesInRange(building_id, start_date_time, stop_date_time):
               .sum().unstack().reset_index().fillna(0)
               .set_index('pointtimestamp'))
 
-    #TODO remove?, this is so that it runs faster
+    #TODO rework?? rn doing this simple thing to try to get around size issues
     # --> without this removal, it takes >2 hrs (not exactly sure havent run the whole thing)
-    # for column in df_pivot:
-    #     if "HU" in column:
-    #         df_pivot.drop([column], axis=1, inplace=True)
+    known_point_names = []
+    for column in df_pivot:
+        point_name = ''.join([i for i in column if not i.isdigit()])
+        # if "HU" in point_name:
+        #     df_pivot.drop([column], axis=1, inplace=True)
+        if point_name not in known_point_names:
+            known_point_names.append(point_name)
+        else:
+            df_pivot.drop([column], axis=1, inplace=True)
 
     return df_pivot
 
@@ -91,6 +98,18 @@ def getClassItems(data_table, mapping):
 
     return class_items
 
+def pretty_print_freq_itemsets(itemsets, mapping, data_table, class_items):
+    print("CLASS ITEMS", class_items)
+    print("Data table", data_table.domain.variables)
+
+    for item in itemsets:
+        print(item)
+
+        # print(', '.join(names[i] for i in ante), '-->',
+        #       names[next(iter(cons))],
+        #       '(supp: {}, conf: {})'.format(supp, conf, ))
+
+
 def getAssociationRules(itemsets, class_items):
     '''
     Get the rules!
@@ -115,13 +134,30 @@ def pretty_print_rules(data_table, mapping, rules):
     '''
     names = {item: '{}={}'.format(var.name, val)
         for item, var, val in OneHot.decode(mapping, data_table, mapping)}
-    print("Names is:\n{}\n".format(names))
+    # print("Names is:\n{}\n".format(names))
 
     print("READABLE RULES\n")
     for ante, cons, supp, conf in rules:
         print(', '.join(names[i] for i in ante), '-->',
         names[next(iter(cons))],
-        '(supp: {}, conf: {})'.format(supp, conf))
+        '(supp: {}, conf: {}, lift: )'.format(supp, conf))
+
+def write_rules(data_table, mapping, rules, filename):
+    '''
+    Prints the rules! in a way that we can understand!
+    :return: None
+    '''
+    with open(filename, 'w') as f:
+        names = {item: '{}={}'.format(var.name, val)
+            for item, var, val in OneHot.decode(mapping, data_table, mapping)}
+
+        f.write("READABLE RULES\n")
+        for ante, cons, supp, conf in rules:
+            s = (', '.join(names[i] for i in ante), '-->',
+            names[next(iter(cons))],
+            '(supp: {}, conf: {})'.format(supp, conf))
+
+            f.write(s)
 
 def main():
     df = getDFBuildingValuesInRange('4', '2017-08-18 12:00', '2017-08-18 20:00')
@@ -130,9 +166,17 @@ def main():
     class_items = getClassItems(data_table, mapping)
 
     itemsets = dict(frequent_itemsets(X, .4))
+    # pretty_print_freq_itemsets(itemsets, mapping, data_table, class_items)
     print("Length of frequent itemsets:", len(itemsets))
     rules = getAssociationRules(itemsets, class_items)
+    print("Length of rules:", len(rules))
 
     pretty_print_rules(data_table, mapping, rules)
+
+    if len(sys.argv) > 1:
+        write_rules(data_table, mapping, rules, sys.argv[1])
+
+    # Can get lift through this,,,
+    rules_stats(rules, itemsets, n_examples=len(class_items))
 
 main()
