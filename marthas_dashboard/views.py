@@ -99,7 +99,7 @@ def generate_heatmap(data):
     dates = list(set(list(data['date'])))
     times = list(set(list(data['time'])))
     TOOLS = "hover,save,pan,box_zoom,reset,wheel_zoom"
-    p = figure(title="US Unemployment",
+    p = figure(title=data['pointname'][0],
        y_range=dates, x_range=list(reversed(times)),
        x_axis_location="above", plot_width=1000, plot_height=700,
        tools=TOOLS, toolbar_location='below')

@@ -48,6 +48,12 @@ class API:
         :return:pd.DataFrame [description, id, name, pointsourceid, pointtypeid, roomid]
         """
         return self.query_url(['building', building_id, 'points', point_type])
+    def point_info(self, name):
+        """
+        :param name a point name eg BI.LAB.HW.TEMP
+        :return:pd.DataFrame [pointname, id, pointtypeid, units, returntype, factor, pointsourceid, description]
+        """
+        return self.query_url(['point', name])
 
     def point_values(self, point_id, start, end):
         """
