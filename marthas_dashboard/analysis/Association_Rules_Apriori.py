@@ -1,3 +1,9 @@
+'''
+We will likely not use this ---> It takes too long!
+Keeping it for now because might want to reference some of the binning,
+one-hot encoding, or general dataframe handling it contains.
+'''
+
 from marthas_dashboard.api import *
 import sys
 import pandas as pd
