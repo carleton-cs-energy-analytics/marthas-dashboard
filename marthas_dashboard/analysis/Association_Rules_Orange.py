@@ -134,26 +134,37 @@ def pretty_print_rules(data_table, mapping, rules):
     '''
     names = {item: '{}={}'.format(var.name, val)
         for item, var, val in OneHot.decode(mapping, data_table, mapping)}
-    # print("Names is:\n{}\n".format(names))
 
+    api = API()
+    for i in range(len(names)):
+        pi = api.point_info(names[i].split('=')[0])
+        names[i] = names[i] + " ({})".format(pi.description[0])
+
+    # print("Names is:\n{}\n".format(names))
     print("READABLE RULES\n")
     for ante, cons, supp, conf in rules:
         print(', '.join(names[i] for i in ante), '-->',
         names[next(iter(cons))],
-        '(supp: {}, conf: {}, lift: )'.format(supp, conf))
+        '(supp: {}, conf: {}, lift: )\n'.format(supp, conf))
 
 def write_rules(data_table, mapping, rules, filename):
     '''
     Prints the rules! in a way that we can understand!
     :return: None
     '''
+    print("Writing rules to", filename)
     with open(filename, 'w') as f:
         names = {item: '{}={}'.format(var.name, val)
             for item, var, val in OneHot.decode(mapping, data_table, mapping)}
 
+        api = API()
+        for i in range(len(names)):
+            pi = api.point_info(names[i].split('=')[0])
+            names[i] = names[i] + " ({})".format(pi.description[0])
+
         f.write("READABLE RULES\n")
         for ante, cons, supp, conf in rules:
-            s = (', '.join(names[i] for i in ante), '-->',
+            s = "{} {} {} {}\n".format(', '.join(names[i] for i in ante), '-->',
             names[next(iter(cons))],
             '(supp: {}, conf: {})'.format(supp, conf))
 
@@ -169,13 +180,12 @@ def main():
     # pretty_print_freq_itemsets(itemsets, mapping, data_table, class_items)
     print("Length of frequent itemsets:", len(itemsets))
     rules = getAssociationRules(itemsets, class_items)
-    print("Length of rules:", len(rules))
 
-    pretty_print_rules(data_table, mapping, rules)
+    # pretty_print_rules(data_table, mapping, rules)
 
-    if len(sys.argv) > 1:
-        write_rules(data_table, mapping, rules, sys.argv[1])
-
+    # if len(sys.argv) > 1:
+    #     write_rules(data_table, mapping, rules, sys.argv[1])
+    write_rules(data_table, mapping, rules, "rules.txt")
     # Can get lift through this,,,
     rules_stats(rules, itemsets, n_examples=len(class_items))
 
