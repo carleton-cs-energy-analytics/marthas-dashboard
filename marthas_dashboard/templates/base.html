@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/skeleton.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
+
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.css" >
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.css" >
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.11.min.css">
@@ -21,9 +22,11 @@
         <div class="three columns">
             <div class="sidebar">
                 <ul class='sidebar-menu'>
-                    <a href="{{url_for('compare')}}"><li>Carleton Energy Analytics</li></a>
+                    <a class="home" href="{{url_for('compare')}}"><li>Carleton Energy Analytics</li></a>
                     <a href="{{url_for('compare')}}"><li>Comparison</li></a>
                     <a href="{{url_for('heatmap')}}"><li>Heat Map</li></a>
+                    <a href="{{url_for('alerts')}}"><li>Alerts</li></a>
+
                 </ul>
             </div>
             &nbsp;
@@ -33,5 +36,7 @@
         </div>
     </div>
     <script type="text/javascript" src=" {{ url_for('static', filename='js/comparison.js') }}"></script>
+    <script type="text/javascript" src=" {{ url_for('static', filename='js/sorttable.js') }}"></script>
+
 </body>
 </html>

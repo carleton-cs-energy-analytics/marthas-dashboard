@@ -14,6 +14,7 @@ from bokeh.models import (
 )
 from bokeh.palettes import Greys
 from .api import API
+from .alerts import generate_alerts
 import json
 
 api = API()
@@ -29,6 +30,9 @@ def compare():
     building_names = api.buildings()
 
     searches, keywords = create_search_bins(request.args)
+    # Keywords are all the get params that aren't part of the comparison form
+    # eg color map
+    # basically just use them to pass around data to the portion of this that generates the actual graphs
 
     if len(searches) < 1:
         searches[0] = {}
@@ -50,6 +54,41 @@ def compare():
 
     html = render_template(
         'chart.html',
+        buildings = building_names,
+        scripts = json,
+        result_components = results_components,
+        allow_comparisons = True
+    )
+    return encode_utf8(html)
+
+@app.route('/alerts')
+def alerts():
+    building_names = api.buildings()
+
+    searches, keywords = create_search_bins(request.args)
+
+    if len(searches) < 1:
+        searches[0] = {}
+        # Just set some defaults if we didn't have any searches
+        searches[0]['building'] = '2'
+        searches[0]['point'] = '511'
+        searches[0]['from'] = '2016-08-18'
+        searches[0]['to'] = '2017-08-20'
+
+    # do our searches and get the coponents we need to inject there
+    search_results = do_searches(searches)
+    keywords['graphtype'] = 'compare'
+    keywords['alerts'] = True
+
+    results_components = get_results_components(searches, search_results, keywords)
+
+    # get our json for all rooms and points
+    # so that we can change the values of the select fields based on other values
+    rooms_points = get_rooms_points(building_names)
+    json = rooms_points_json(rooms_points)
+
+    html = render_template(
+        'alerts.html',
         buildings = building_names,
         scripts = json,
         result_components = results_components,
@@ -212,7 +251,6 @@ def get_results_components(searches, search_results, keywords):
         # already have these in our searches, so just copy them over
         result_components = searches[i]
         # we also want all of the buildings points so that we can select the correct one
-
         result_components['point_names'] = map_points(api.building_points(result_components['building']))
         if len(result) <= 1:
             # no data associated with search, makes it easy
@@ -220,6 +258,8 @@ def get_results_components(searches, search_results, keywords):
             result_components['script'] = ''
         else:
             result_components['script'], result_components['plot'] = generate_figure(result, keywords)
+            if 'alerts' in keywords:
+                result_components['alerts'] = generate_alerts(result, keywords)
         parts.append(result_components)
     return parts
 
