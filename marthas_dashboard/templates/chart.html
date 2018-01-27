@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block content %}
+    <div class="row chart-container">
     {% for item in result_components %}
         {{ search_result(item, loop.index0, False, loop.length <= 1 and allow_comparisons)}}
         {% if loop.length <= 1 and allow_comparisons%}
@@ -21,38 +22,45 @@
         {% endif %}
 
     {% endfor %}
+    </div>
 
 {% endblock %}
 
 
 {% macro search_result(data, i, hide = False, show_comparison_button = False) -%}
-    <div class="result-{{i}} {% if hide %} hidden {% endif %} {% if i > 0 %} comparison {% else %} original {% endif %}">
+    <div class="result-{{i}} {% if hide %} hidden {% endif %} one-half column comparison">
         <div class="params-container">
             
-            <button class="add-comparison {% if not show_comparison_button %} hidden {% endif%} right">+ Add Comparison</button>
             
             <span class="close-comparison {% if i < 1 %} hidden {% endif %}right">X</span>
             
             <form name="{{i}}" class="filter_data" method='GET'>
-                <label>Building</label>
+                <label>Building:</label>
                 <select class="building_select" name="{{i}}_building">
                     {% for id, name in buildings.items() %}
                         <option {{ "selected" if data.building|int == id|int }} value="{{id}}">{{name}}</option>
                     {% endfor %}
                 </select>
-                <label>Point name</label>
+                <br/>
+                <label>Point name:</label>
                 <select class="point_selector" name="{{i}}_point">
                     {% for id,name in data.point_names.items() %}
                     <option {{ "selected" if data.point|int == id|int }} value="{{id}}">{{name}}</option>
                     {% endfor %}
                 </select>
-                <br>
-                <label>From</label>
-                <input type="date" name="{{i}}_from" value="{{ data.from }}">
-                <label>To</label>
-                <input type="date" name="{{i}}_to" value="{{ data.to }}">
-                <br>
+                <div class="row">
+                    <div class="column one-half">
+                        <label>From:</label>
+                        <input type="date" name="{{i}}_from" value="{{ data.from }}">
+                    </div>
+                    <div class="column one-half">
+                        <label>To:</label>
+                        <input type="date" name="{{i}}_to" value="{{ data.to }}">
+                    </div>
+                </div>
                 <button class="form_submit">Submit</button>
+            <button type="button" class="add-comparison {% if not show_comparison_button %} hidden {% endif%} right">+ Add Comparison</button>
+
             </form> 
 
         </div>

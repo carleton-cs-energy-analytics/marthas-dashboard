@@ -1,9 +1,6 @@
 .right{
     float: right;
 }
-div.comparison{
-    float: right;
-}
 .hidden {
     display: none;
 }
@@ -30,21 +27,20 @@ h1 a {
 .params-container {
     border-radius: 5px;
     background-color: #f2f2f2;
-    padding: 20px;
-    max-width: 600px;
+    padding: 10px;
 }
-
-.params-container input[type=submit], .params-container input[type=button]{
-    background: #4B99AD;
-    padding: 8px 15px 8px 15px;
-    border: none;
-    color: #fff;
+.chart-container{
+    width: 95%;
 }
-.params-container input[type=submit]:hover, .params-container input[type=button]:hover{
-    background: #4691A4;
-    box-shadow:none;
-    -moz-box-shadow:none;
-    -webkit-box-shadow:none;
+.comparison label{
+    display: inline;
+    font-weight: normal;
+}
+.comparison select{
+    height: 20px;
+}
+.comparison form{
+    margin-bottom: 0px;
 }
 .close-comparison:hover{
     cursor: pointer;
@@ -63,6 +59,9 @@ h1 a {
     text-decoration: none;
     color: black;
 }
+.main-content{
+    margin-top: 1em;
+}
 body{
     margin: 0px;
 }
@@ -72,7 +71,4 @@ body{
     height: 100vh;
     border-right: 2px solid black;
     background-color: #c6c6c6;
-}
-.site-title{
-    padding: 10px 0px;
 }

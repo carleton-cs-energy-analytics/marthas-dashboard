@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <title>Martha's Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/skeleton.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.css" >
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.css" >
@@ -18,21 +18,17 @@
 </head>
 <body>
     <div class="row">
-        <div class="two columns">
+        <div class="three columns">
             <div class="sidebar">
                 <ul class='sidebar-menu'>
+                    <a href="{{url_for('compare')}}"><li>Carleton Energy Analytics</li></a>
                     <a href="{{url_for('compare')}}"><li>Comparison</li></a>
                     <a href="{{url_for('heatmap')}}"><li>Heat Map</li></a>
                 </ul>
             </div>
             &nbsp;
         </div>
-        <div class="ten columns main-content">
-            <h1 class="site-title">
-                <a href="/">
-                    Energy Analytics Dashboard
-                </a>
-            </h1>
+        <div class="nine columns main-content">
             {% block content %}{% endblock %}
         </div>
     </div>
