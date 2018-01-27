@@ -1,0 +1,44 @@
+{% macro data_filter(data, buildings, i, allow_comparisons = True, hide = False, show_comparison_button = False ) -%}
+    <div class="result-{{i}} {% if hide %} hidden {% endif %} {% if allow_comparisons %} one-half{% endif %} column comparison">
+        <div class="params-container">
+            
+            
+            <span class="close-comparison {% if i < 1 %} hidden {% endif %}right">X</span>
+            
+            <form name="{{i}}" class="filter_data" method='GET'>
+                <label>Building:</label>
+                <select class="building_select" name="{{i}}_building">
+                    {% for id, name in buildings.items() %}
+                        <option {{ "selected" if data.building|int == id|int }} value="{{id}}">{{name}}</option>
+                    {% endfor %}
+                </select>
+                {% if  allow_comparisons %}
+                <br/>
+                {% endif %}
+                <label>Point name:</label>
+                <select class="point_selector" name="{{i}}_point">
+                    {% for id,name in data.point_names.items() %}
+                    <option {{ "selected" if data.point|int == id|int }} value="{{id}}">{{name}}</option>
+                    {% endfor %}
+                </select>
+                <br/>
+                <label>From:</label>
+                <input type="date" name="{{i}}_from" value="{{ data.from }}">
+                <label>To:</label>
+                <input type="date" name="{{i}}_to" value="{{ data.to }}"><br/>
+                <button class="form_submit">Submit</button>
+            <button type="button" class="add-comparison {% if not show_comparison_button %} hidden {% endif%} right">+ Add Comparison</button>
+
+            </form> 
+
+        </div>
+        {{ data.plot |indent(4)|safe }}
+    </div>
+{% endmacro %}
+
+{% macro alert(row) -%}
+    <tr>
+        <td class="dtcell"> {{ row['pointtimestamp'] }}</td>
+        <td>{{ row['pointvalue'] }} </td>
+    </tr>
+{% endmacro %}

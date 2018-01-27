@@ -1,40 +1,53 @@
-var add_comparison = document.getElementsByClassName("add-comparison")[0];
-var close_comparison = document.getElementsByClassName("close-comparison")[1];
-var comparison = document.getElementsByClassName("comparison")[0];
+var add_comparison = document.getElementsByClassName("add-comparison");
+var close_comparison = document.getElementsByClassName("close-comparison");
+var comparison = document.getElementsByClassName("comparison")[1];
 var forms = document.getElementsByClassName("filter_data");
 var building_select = document.getElementsByClassName("building_select");
-console.log(building_select)
-
-add_comparison.addEventListener('click', function(event){
-    comparison.style.display = 'block';
-    add_comparison.style.display = 'none';
-});
-close_comparison.addEventListener('click', function(event){
-    comparison.style.display = 'none';
-    add_comparison.style.display = 'block';
-});
+var color_picker = document.getElementsByClassName("color-picker");
+if(add_comparison.length > 0){
+    add_comparison = add_comparison[0];
+    add_comparison.addEventListener('click', function(event){
+        comparison.style.display = 'block';
+        add_comparison.style.display = 'none';
+    });
+}
+if(close_comparison.length > 1){
+    close_comparison = close_comparison[1];
+    close_comparison.addEventListener('click', function(event){
+        comparison.style.display = 'none';
+        add_comparison.style.display = 'block';
+    });
+}
+if(color_picker.length > 0){
+    color_picker[0].addEventListener('change', constructComparisonUrl);
+}
 for(var i = 0; i < forms.length; i++){
     forms[i].addEventListener("submit", constructComparisonUrl);
     building_select[i].addEventListener('change', buildingChange);
 }
 function constructComparisonUrl(event){
+    console.log(event)
+    console.log("test")
     event.preventDefault();
-    var inputs = '?'
-    console.log(forms)
+    var inputs = '?';
     for (var i = 0; i < forms.length; i++) {
         var form = forms[i];
         var form_inputs = form.getElementsByTagName("input");
         var form_selects = form.getElementsByTagName("select");
 
         for(var j = 0; j < form_inputs.length; j++){
-            inputs = inputs + addInputUrl(form_inputs[j])
+            inputs = inputs + addInputUrl(form_inputs[j]);
         };
         for(var j = 0; j < form_selects.length; j++){
-            inputs = inputs + addInputUrl(form_selects[j])
+            inputs = inputs + addInputUrl(form_selects[j]);
         };
         // get all elements
     };
-    window.location.href = window.location.protocol + "//" + window.location.host + "/search"+inputs; 
+    if(color_picker.length > 0){
+        color_picker = color_picker[0];
+        inputs = inputs + "color="+color_picker.options[color_picker.selectedIndex].value;
+    }
+    window.location.href = window.location.protocol + "//" + window.location.host + window.location.pathname +inputs; 
 }
 function addInputUrl(el){
     return el.name+'='+el.value+'&';
