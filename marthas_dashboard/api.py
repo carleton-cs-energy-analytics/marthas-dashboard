@@ -106,7 +106,18 @@ class API:
         eg 13 for heating 
         :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
         """
-        return self.query_url(['values', 'building', building_id, start, end, point_type])
+        return self.query_url(['values', 'building', building_id, start, end, 'type', point_type])
+    def building_values_in_range_by_source(self, building_id, start, end, source_id):
+        """
+        :param building_id: eg, '4'
+        :param start: eg, '2016-08-18'
+        :param end: eg, '2017-08-19'
+        :param source: A source type ID 
+        as sourced from a query like http://energycomps.its.carleton.edu/api/index.php/building/4/points 
+        eg 1 for lucid, 2 for siemens
+        :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
+        """
+        return self.query_url(['values', 'building', building_id, start, end, 'source', source_id])
 
     def query_url(self, route_params):
         endpoint = "/".join(str(v) for v in route_params)

@@ -7,14 +7,14 @@ var color_picker = document.getElementsByClassName("color-picker");
 if(add_comparison.length > 0){
     add_comparison = add_comparison[0];
     add_comparison.addEventListener('click', function(event){
-        comparison.style.display = 'block';
+        comparison.classList.toggle("hidden");
         add_comparison.style.display = 'none';
     });
 }
 if(close_comparison.length > 1){
     close_comparison = close_comparison[1];
     close_comparison.addEventListener('click', function(event){
-        comparison.style.display = 'none';
+        comparison.classList.toggle("hidden");
         add_comparison.style.display = 'block';
     });
 }
@@ -26,12 +26,14 @@ for(var i = 0; i < forms.length; i++){
     building_select[i].addEventListener('change', buildingChange);
 }
 function constructComparisonUrl(event){
-    console.log(event)
-    console.log("test")
     event.preventDefault();
     var inputs = '?';
     for (var i = 0; i < forms.length; i++) {
         var form = forms[i];
+        var parent = form.parentElement.parentElement;
+        if(parent.classList.contains("hidden")){
+            continue;
+        }
         var form_inputs = form.getElementsByTagName("input");
         var form_selects = form.getElementsByTagName("select");
 
@@ -67,7 +69,6 @@ function buildingChange(){
     // and add in the new ones according to our json values
     points = rooms_points[building_id]['points']
     Object.keys(points).forEach(function(key) {
-        console.log(points[key])
         point_selector.options[point_selector.options.length]= new Option(points[key], key);
     });
 
