@@ -145,7 +145,8 @@ def generate_heatmap(data, keywords):
             colorkey = keywords['color']
     mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min(), high=data['pointvalue'].max())
     if data['pointvalue'].min() == data['pointvalue'].max():
-        return '', 'All readings in the specified range are the same: '+str(data['pointvalue'].min())+' '+str(data['units'][0])
+        mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min() - 1, high=data['pointvalue'].max() + 1)
+
 
     source = ColumnDataSource(data)
     TOOLS = "hover,save,pan,box_zoom,reset,wheel_zoom"
