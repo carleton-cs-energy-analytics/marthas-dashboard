@@ -37,10 +37,10 @@ def compare():
     if len(searches) < 1:
         searches[0] = {}
         # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '2'
+        searches[0]['building'] = '4'
         searches[0]['point'] = '511'
-        searches[0]['from'] = '2016-08-18'
-        searches[0]['to'] = '2017-08-20'
+        searches[0]['from'] = '2017-08-18'
+        searches[0]['to'] = '2017-08-30'
 
     # do our searches and get the coponents we need to inject there
     search_results = do_searches(searches)
@@ -70,10 +70,10 @@ def alerts():
     if len(searches) < 1:
         searches[0] = {}
         # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '2'
+        searches[0]['building'] = '4'
         searches[0]['point'] = '511'
-        searches[0]['from'] = '2016-08-18'
-        searches[0]['to'] = '2017-08-20'
+        searches[0]['from'] = '2017-08-18'
+        searches[0]['to'] = '2017-08-30'
 
     # do our searches and get the coponents we need to inject there
     search_results = do_searches(searches)
@@ -103,10 +103,10 @@ def heatmap():
     if len(searches) < 1:
         searches[0] = {}
         # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '2'
+        searches[0]['building'] = '4'
         searches[0]['point'] = '511'
-        searches[0]['from'] = '2016-08-18'
-        searches[0]['to'] = '2017-08-20'
+        searches[0]['from'] = '2017-08-18'
+        searches[0]['to'] = '2017-08-30'
     searches = [searches[0]]
 
     # do our searches and get the coponents we need to inject there
@@ -144,6 +144,9 @@ def generate_heatmap(data, keywords):
         if keywords['color'] in colors:
             colorkey = keywords['color']
     mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min(), high=data['pointvalue'].max())
+    if data['pointvalue'].min() == data['pointvalue'].max():
+        mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min() - 1, high=data['pointvalue'].max() + 1)
+
 
     source = ColumnDataSource(data)
     TOOLS = "hover,save,pan,box_zoom,reset,wheel_zoom"
