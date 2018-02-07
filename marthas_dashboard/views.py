@@ -1,9 +1,9 @@
 from marthas_dashboard import app
+import json
 from flask import (request, redirect, url_for, render_template)
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
-# from bokeh.models import HoverTool
 from bokeh.models import (
     ColumnDataSource,
     HoverTool,
@@ -14,8 +14,6 @@ from bokeh.models import (
 )
 from .api import API
 from .alerts import generate_alerts
-import json
-
 from .colors import heatmap_colors
 
 api = API()
@@ -43,7 +41,7 @@ def compare():
         searches[0]['from'] = '2017-08-18'
         searches[0]['to'] = '2017-08-30'
 
-    # do our searches and get the coponents we need to inject there
+    # do our searches and get the components we need to inject there
     search_results = do_searches(searches)
     keywords['graphtype'] = 'compare'
     results_components = get_results_components(searches, search_results, keywords)
@@ -51,12 +49,12 @@ def compare():
     # get our json for all rooms and points
     # so that we can change the values of the select fields based on other values
     rooms_points = get_rooms_points(building_names)
-    json = rooms_points_json(rooms_points)
+    json_res = rooms_points_json(rooms_points)
 
     html = render_template(
         'chart.html',
         buildings=building_names,
-        scripts=json,
+        scripts=json_res,
         result_components=results_components,
         allow_comparisons=True
     )
@@ -77,7 +75,7 @@ def alerts():
         searches[0]['from'] = '2017-08-18'
         searches[0]['to'] = '2017-08-30'
 
-    # do our searches and get the coponents we need to inject there
+    # do our searches and get the components we need to inject there
     search_results = do_searches(searches)
     keywords['graphtype'] = 'compare'
     keywords['alerts'] = True
@@ -87,12 +85,48 @@ def alerts():
     # get our json for all rooms and points
     # so that we can change the values of the select fields based on other values
     rooms_points = get_rooms_points(building_names)
-    json = rooms_points_json(rooms_points)
+    json_res = rooms_points_json(rooms_points)
 
     html = render_template(
         'alerts.html',
         buildings=building_names,
-        scripts=json,
+        scripts=json_res,
+        result_components=results_components,
+        allow_comparisons=True
+    )
+    return encode_utf8(html)
+
+
+@app.route('/room-inspector')
+def room_inspector():
+    building_names = api.buildings()
+
+    searches, keywords = create_search_bins(request.args)
+
+    if len(searches) < 1:
+        searches[0] = {}
+        # Just set some defaults if we didn't have any searches
+        searches[0]['building'] = '2'
+        searches[0]['point'] = '511'
+        searches[0]['from'] = '2016-08-18'
+        searches[0]['to'] = '2017-08-20'
+
+    # do our searches and get the components we need to inject there
+    search_results = do_searches(searches)
+    keywords['graphtype'] = 'compare'
+    keywords['alerts'] = True
+
+    results_components = get_results_components(searches, search_results, keywords)
+
+    # get our json for all rooms and points
+    # so that we can change the values of the select fields based on other values
+    rooms_points = get_rooms_points(building_names)
+    json_res = rooms_points_json(rooms_points)
+
+    html = render_template(
+        'alerts.html',
+        buildings=building_names,
+        scripts=json_res,
         result_components=results_components,
         allow_comparisons=True
     )
@@ -212,6 +246,7 @@ def generate_line_graph(data, keywords):
 
 
 def create_search_bins(args):
+    """Takes requests.args dictionary as argument"""
     search_bins = {}
     other_args = {}
     # each arg is formatted as formnum_attribute
@@ -289,7 +324,7 @@ def get_rooms_points(buildings):
 
 
 def map_points(points):
-    """Simple mapping function to take a pandas df returned from building_points
+    """Take a pandas df returned from building_points
     and turn it into something easier to use on the frontend
     """
     results = {}

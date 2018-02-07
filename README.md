@@ -16,6 +16,9 @@ source marthas_dashboard/bin/activate
 
 # install packages
 pip install bokeh flask
+
+# editable install of marthas_dashboard
+pip install -e .
 ```
 
 ## To Run
