@@ -1,5 +1,6 @@
 from marthas_dashboard import app
 import json
+import pandas as pd
 from flask import (request, redirect, url_for, render_template)
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
@@ -10,8 +11,7 @@ from bokeh.models import (
     LinearColorMapper,
     AdaptiveTicker,
     PrintfTickFormatter,
-    ColorBar
-)
+    ColorBar)
 from .api import API
 from .alerts import generate_alerts
 from .colors import heatmap_colors
@@ -99,36 +99,9 @@ def alerts():
 
 @app.route('/room-inspector')
 def room_inspector():
-    building_names = api.buildings()
-
-    searches, keywords = create_search_bins(request.args)
-
-    if len(searches) < 1:
-        searches[0] = {}
-        # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '2'
-        searches[0]['point'] = '511'
-        searches[0]['from'] = '2016-08-18'
-        searches[0]['to'] = '2017-08-20'
-
-    # do our searches and get the components we need to inject there
-    search_results = do_searches(searches)
-    keywords['graphtype'] = 'compare'
-    keywords['alerts'] = True
-
-    results_components = get_results_components(searches, search_results, keywords)
-
-    # get our json for all rooms and points
-    # so that we can change the values of the select fields based on other values
-    rooms_points = get_rooms_points(building_names)
-    json_res = rooms_points_json(rooms_points)
-
+    html_table = room_inspector_df()
     html = render_template(
-        'alerts.html',
-        buildings=building_names,
-        scripts=json_res,
-        result_components=results_components,
-        allow_comparisons=True
+        'room.html', table=html_table,
     )
     return encode_utf8(html)
 
@@ -298,6 +271,7 @@ def get_results_components(searches, search_results, keywords):
         result_components = searches[i]
         # we also want all of the buildings points so that we can select the correct one
         result_components['point_names'] = map_points(api.building_points(result_components['building']))
+
         if len(result) <= 1:
             # no data associated with search, makes it easy
             result_components['plot'] = 'No data for that search'
@@ -339,6 +313,49 @@ def map_rooms(rooms):
     for index, row in rooms.iterrows():
         results[row['id']] = row['name'].replace("_", " ")
     return results
+
+
+def room_inspector_df():
+
+    bld = api.building('Hulings').id
+    timestamp = '2017-08-18 00:45:00'
+
+    # Load some data
+    rooms = api.building_rooms(bld)
+    points = api.building_points(bld)
+    vals = api.building_values_at_time(bld, timestamp)
+
+    # Remove room 6, the scary dummy room
+    rooms = rooms[rooms['id'] != 6]
+
+    # Merge df together
+    df = pd.merge(points, rooms, left_on='roomid', right_on='id', suffixes=('_point', '_room'))
+    df = pd.merge(df, vals, left_on='id_point', right_on='pointid', )
+
+    # Attempt to tag points
+
+    df['tag'] = 'none'
+
+    # Tag 'valve' based on description
+    df_valve = df[df['description'].str.find('VALVE') > 0]
+    df.loc[df_valve.index, 'tag'] = 'valve'
+
+    # Tag 'temp' based on point name
+    df_temp = df[df['name_point'].str.find('.RM') > 0]
+    df.loc[df_temp.index, 'tag'] = 'temp1 (RM)'
+
+    df_temp = df[df['name_point'].str.find('.RMT') > 0]
+    df.loc[df_temp.index, 'tag'] = 'temp2 (RMT)'
+
+    # View DF where tag is not "none
+    view_df = df.query('tag != "none"')
+
+    # Pivot
+    view_df = (view_df.pivot(index='name_room', columns='tag',
+                             values='pointvalue')
+               .reset_index().rename_axis(None, axis=1))
+
+    return view_df.to_html()
 
 
 def rooms_points_json(rooms_points):

@@ -90,7 +90,7 @@ class API:
         """
         return self.query_url(['values', 'building', building_id, timestamp])
 
-    def values_at_time(self,timestamp):
+    def values_at_time(self, timestamp):
         """
         :param building_id: eg, '4'
         :param timestamp: eg, 2017-08-18 00:45:00
