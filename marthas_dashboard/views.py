@@ -355,7 +355,7 @@ def room_inspector_df():
                              values='pointvalue')
                .reset_index().rename_axis(None, axis=1))
 
-    return view_df.to_html()
+    return view_df.to_html(index=False)
 
 
 def rooms_points_json(rooms_points):
