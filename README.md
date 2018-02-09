@@ -14,8 +14,8 @@ cd venvs
 python3 -m venv marthas_dashboard
 source marthas_dashboard/bin/activate
 
-# install packages
-pip install bokeh flask
+# install flask app (Inside the cloned repo) (NOT optional)
+pip install -e .
 ```
 
 ## To Run
