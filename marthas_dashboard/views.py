@@ -19,7 +19,6 @@ import json
 
 api = API()
 
-
 @app.route('/')
 def index():
     return redirect(url_for('compare'))
@@ -95,6 +94,43 @@ def alerts():
         allow_comparisons = True
     )
     return encode_utf8(html)
+
+@app.route('/room_comparison')
+def room_comparison():
+    building_names = api.buildings()
+    #times = generate_15_min_timestamps()
+    times = ["00:00:00", "00:15:00"]
+    searches, keywords = create_search_bins(request.args)
+
+    if len(searches) < 1:
+        searches[0] = {}
+        # Just set some defaults if we didn't have any searches
+        searches[0]['building'] = '4'
+        searches[0]['point'] = '511'
+        searches[0]['from'] = '2017-08-18'
+        searches[0]['to'] = '2017-08-30'
+
+    # do our searches and get the components we need to inject there
+    search_results = do_searches(searches)
+    keywords['graphtype'] = 'compare'
+    keywords['alerts'] = True
+
+    results_components = get_results_components(searches, search_results, keywords)
+
+    # get our json for all rooms and points
+    # so that we can change the values of the select fields based on other values
+    rooms_points = get_rooms_points(building_names)
+    json = rooms_points_json(rooms_points)
+    print(results_components)
+    html = render_template(
+        'building-comparison.html',
+        buildings=building_names,
+        scripts=json,
+        results_components=results_components,
+        allow_comparisons=True
+    )
+    return encode_utf8(html)
+
 @app.route('/heatmap')
 def heatmap():
     building_names = api.buildings()
