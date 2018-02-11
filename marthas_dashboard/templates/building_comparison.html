@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% import 'macros.html' as macros %}
+
+{% block pl_script %}
+    {% for item in result_components %}
+        {{ item.script|indent(4)|safe }}
+    {% endfor %}
+    {{ scripts|safe }}
+{% endblock %}
+
+{% block content %}
+
+    {# Start by creating the building, date, and timestamp picker. #}
+    <div class="row chart-container">
+    {% for item in result_components %}
+        <div class="seven columns">
+            {# TODO: Write macro similar to data filter for new form. #}
+            {{ macros.generate_comparison_selector(item, buildings, timestamps) }}
+        </div>
+        <div class="nine columns">
+            <div class="comparison-container">
+                {% if item.comparisons|length > 0 %}
+                <table class="room-comparisons sortable">
+                    <thead><tr><th class="roomcell">Room</th><th></th></tr></thead>
+                </table>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+
+
+
+{% endblock %}
