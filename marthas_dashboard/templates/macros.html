@@ -36,6 +36,34 @@
     </div>
 {% endmacro %}
 
+
+{% macro generate_comparison_selector(data, buildings, timestamps) -%}
+    <div class="result">
+        <form class="building-comparison-select" method="GET">
+            <label>Building:</label>
+            <select class="building_select" name="building">
+                {% for id, name in buildings.items() %}
+                    <option {{ "selected" if data.building|int == id|int}} value="{{id}}">{{name}}</option>
+                {% endfor %}
+            </select>
+            <label>Date:</label>
+            <input type="date" name="date" value="{{ data.date }}">
+            <label>Timestamp:</label>
+            <select class="timestamp-select" name="timestamp">
+                {% for time in timestamps %}
+                    <option value="{{ time }}" {{ "selected" if value==time }}>{{ time }}</option>
+                {% endfor %}
+            </select>
+
+            <button class="form_submit">Submit</button>
+
+
+        </form>
+    </div>
+
+{% endmacro %}
+
+
 {% macro alert(row) -%}
     <tr>
         <td class="dtcell"> {{ row['pointtimestamp'] }}</td>

@@ -15,7 +15,8 @@ from bokeh.models import (
 from bokeh.palettes import Greys
 from .api import API
 from .alerts import generate_alerts
-import json
+from .room_comparison import generate_15_min_timestamps
+import json, time
 
 api = API()
 
@@ -65,6 +66,8 @@ def alerts():
     building_names = api.buildings()
 
     searches, keywords = create_search_bins(request.args)
+    print("Searches for alerts: ", searches)
+    print("Keywords for alerts: ", keywords)
 
     if len(searches) < 1:
         searches[0] = {}
@@ -98,36 +101,43 @@ def alerts():
 @app.route('/room_comparison')
 def room_comparison():
     building_names = api.buildings()
-    #times = generate_15_min_timestamps()
-    times = ["00:00:00", "00:15:00"]
-    searches, keywords = create_search_bins(request.args)
+    times = generate_15_min_timestamps()
+
+    # We should be able to pass request.args directly to our function for doing the
+    # API call.
+
+    searches = request.args
+    print(len(searches))
+
+    # Write a function to the dictionary request.args to get the values from
+    # the forms (the forms put the values into the URL upon submission)
+
+    # Then we need to create a macro/page that dynamically fills in a table
+    # with the information and then attach a .js file to it and add an event
+    # listener to each row of the table, (addEventListener("click", redirectToBuildingPage())
+    # which will redirect to the page displaying all of the information for that page.
 
     if len(searches) < 1:
-        searches[0] = {}
-        # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '4'
-        searches[0]['point'] = '511'
-        searches[0]['from'] = '2017-08-18'
-        searches[0]['to'] = '2017-08-30'
+        searches = {}
+        # Just set some defaults if we didn't have any searches (I.e. this is the first loading)
+        searches['building'] = '4'
+        searches['date'] = '2017-08-18'
+        searches['timestamp'] = '00:00:00'
 
     # do our searches and get the components we need to inject there
-    search_results = do_searches(searches)
-    keywords['graphtype'] = 'compare'
-    keywords['alerts'] = True
+    search_results = get_room_comparison_results(searches)
 
-    results_components = get_results_components(searches, search_results, keywords)
 
     # get our json for all rooms and points
     # so that we can change the values of the select fields based on other values
     rooms_points = get_rooms_points(building_names)
     json = rooms_points_json(rooms_points)
-    print(results_components)
     html = render_template(
-        'building-comparison.html',
+        'building_comparison.html',
         buildings=building_names,
         scripts=json,
-        results_components=results_components,
-        allow_comparisons=True
+        result_components=search_results,
+        timestamps=times
     )
     return encode_utf8(html)
 
@@ -275,6 +285,17 @@ def do_searches(search_bins):
         results.append(data)
     return results
 
+
+def get_room_comparison_results(keywords):
+    """ Function that does the api lookup for the room-comparison page.
+        Calls the api.points"""
+
+    building_id, timestamp = keywords["building"], keywords["timestamp"]
+    data = api.building_values_at_time(building_id, timestamp)
+    print(data)
+    return None
+
+
 # from all of our data
 # generates plots, scripts and everything that we actually need to inject into the page
 def get_results_components(searches, search_results, keywords):
@@ -301,6 +322,7 @@ def get_results_components(searches, search_results, keywords):
                 result_components['alerts'] = generate_alerts(result, keywords)
         parts.append(result_components)
     return parts
+
 
 # maps building ids to their points and rooms
 # ie {4:{'rooms':{5}}}
