@@ -48,6 +48,7 @@ class API:
         :return:pd.DataFrame [description, id, name, pointsourceid, pointtypeid, roomid]
         """
         return self.query_url(['building', building_id, 'points', point_type])
+
     def point_info(self, name):
         """
         :param name a point name eg BI.LAB.HW.TEMP
@@ -88,7 +89,8 @@ class API:
         :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
         """
         return self.query_url(['values', 'building', building_id, timestamp])
-    def values_at_time(self,timestamp):
+
+    def values_at_time(self, timestamp):
         """
         :param building_id: eg, '4'
         :param timestamp: eg, 2017-08-18 00:45:00
