@@ -16,7 +16,8 @@ from bokeh.palettes import Greys
 from .api import API
 from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
-import json, time
+import json
+from datetime import datetime
 
 api = API()
 
@@ -66,8 +67,6 @@ def alerts():
     building_names = api.buildings()
 
     searches, keywords = create_search_bins(request.args)
-    print("Searches for alerts: ", searches)
-    print("Keywords for alerts: ", keywords)
 
     if len(searches) < 1:
         searches[0] = {}
@@ -83,7 +82,6 @@ def alerts():
     keywords['alerts'] = True
 
     results_components = get_results_components(searches, search_results, keywords)
-
     # get our json for all rooms and points
     # so that we can change the values of the select fields based on other values
     rooms_points = get_rooms_points(building_names)
@@ -100,43 +98,39 @@ def alerts():
 
 @app.route('/room_comparison')
 def room_comparison():
-    building_names = api.buildings()
-    times = generate_15_min_timestamps()
 
-    # We should be able to pass request.args directly to our function for doing the
-    # API call.
+    building_names = api.buildings()  # Call API to get buildings for selector
+    times = generate_15_min_timestamps()  # Call helper function in room_comparison.py
 
     searches = request.args
-    print(len(searches))
+    # request.args returns back a immutable multi-dictionary. We want to get these values
+    # back in order to be able to show them as the "selected" values.
+    mutable_searches = {}
+    for key, value in searches.items():
+        mutable_searches[key] = value
 
-    # Write a function to the dictionary request.args to get the values from
-    # the forms (the forms put the values into the URL upon submission)
+    searches = mutable_searches
 
-    # Then we need to create a macro/page that dynamically fills in a table
-    # with the information and then attach a .js file to it and add an event
-    # listener to each row of the table, (addEventListener("click", redirectToBuildingPage())
-    # which will redirect to the page displaying all of the information for that page.
-
+    # Just set some defaults if we didn't have any searches (I.e. this is the first loading)
     if len(searches) < 1:
-        searches = {}
-        # Just set some defaults if we didn't have any searches (I.e. this is the first loading)
         searches['building'] = '4'
         searches['date'] = '2017-08-18'
         searches['timestamp'] = '00:00:00'
 
-    # do our searches and get the components we need to inject there
+    # do our searches and get the dataframe back
     search_results = get_room_comparison_results(searches)
 
+    # Currently we are going to limit the size of the dataframe until we decide
+    # how to handle the number of points. TODO: Decide how to display points
+    truncated_search_results = search_results.head()
 
-    # get our json for all rooms and points
-    # so that we can change the values of the select fields based on other values
-    rooms_points = get_rooms_points(building_names)
-    json = rooms_points_json(rooms_points)
+    result_components = searches # Save the values for the selectors
+    result_components['dataframe'] = truncated_search_results
+
     html = render_template(
         'building_comparison.html',
         buildings=building_names,
-        scripts=json,
-        result_components=search_results,
+        result_components=result_components,
         timestamps=times
     )
     return encode_utf8(html)
@@ -288,12 +282,13 @@ def do_searches(search_bins):
 
 def get_room_comparison_results(keywords):
     """ Function that does the api lookup for the room-comparison page.
-        Calls the api.points"""
+        Calls the api.building_values_at_time after using python's datetime to fix the timestamp"""
 
-    building_id, timestamp = keywords["building"], keywords["timestamp"]
-    data = api.building_values_at_time(building_id, timestamp)
-    print(data)
-    return None
+    building_id, date, timestamp = keywords["building"], keywords["date"], keywords["timestamp"]
+    full_timestamp = datetime.strptime((date + " " + timestamp), "%Y-%m-%d %H:%M:%S")
+
+    data = api.building_values_at_time(building_id, full_timestamp)
+    return data
 
 
 # from all of our data

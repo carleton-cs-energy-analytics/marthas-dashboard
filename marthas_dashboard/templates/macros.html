@@ -43,15 +43,15 @@
             <label>Building:</label>
             <select class="building_select" name="building">
                 {% for id, name in buildings.items() %}
-                    <option {{ "selected" if data.building|int == id|int}} value="{{id}}">{{name}}</option>
+                    <option {{ "selected" if data['building']|int == id|int}} value="{{id}}">{{name}}</option>
                 {% endfor %}
             </select>
             <label>Date:</label>
-            <input type="date" name="date" value="{{ data.date }}">
+            <input type="date" name="date" value="{{ data['date']|e }}">
             <label>Timestamp:</label>
             <select class="timestamp-select" name="timestamp">
                 {% for time in timestamps %}
-                    <option value="{{ time }}" {{ "selected" if value==time }}>{{ time }}</option>
+                    <option value="{{ time }}" {{ "selected" if data['timestamp']|e == time }}>{{ time }}</option>
                 {% endfor %}
             </select>
 
@@ -69,4 +69,14 @@
         <td class="dtcell"> {{ row['pointtimestamp'] }}</td>
         <td>{{ row['pointvalue'] }} </td>
     </tr>
+{% endmacro %}
+
+{% macro comparison(row) -%}
+    <tr>
+        <td class="dtcell">{{ row['name'] }}</td>
+        <td class="dtcell">{{ row['pointname'] }}</td>
+        <td class="dtcell">{{ row['units'] }}</td>
+        <td class="dtcell">{{ row['pointvalue']}}</td>
+    </tr>
+
 {% endmacro %}
