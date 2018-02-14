@@ -1,11 +1,9 @@
 from marthas_dashboard import app
-import json
 import pandas as pd
 from flask import (request, redirect, url_for, render_template)
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
-from bokeh.models import HoverTool
 from bokeh.models import (
     ColumnDataSource,
     HoverTool,
@@ -14,7 +12,7 @@ from bokeh.models import (
     PrintfTickFormatter,
     ColorBar
 )
-from bokeh.palettes import Greys
+from .colors import heatmap_colors
 from .api import API
 from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
@@ -104,7 +102,6 @@ def alerts():
 
 @app.route('/room_comparison')
 def room_comparison():
-
     building_names = api.buildings()
     times = generate_15_min_timestamps()  # Call helper function in room_comparison.py
 
@@ -130,7 +127,7 @@ def room_comparison():
 
     # Call a helper function to add the room names and descriptions to the search results data frame.
     # Only call the function if we actually got data for that query.
-    if search_results.shape != (0,0):
+    if search_results.shape != (0, 0):
         search_results = get_room_names_from_point_names(searches, search_results)
         search_results = get_description_from_point_names(searches, search_results)
 
@@ -149,9 +146,9 @@ def room_comparison():
     )
     return encode_utf8(html)
 
+
 @app.route('/room-inspector')
 def room_inspector():
-
     searches = request.args
     print(searches)
     html = render_template("base.html")
@@ -180,12 +177,12 @@ def heatmap():
     # get our json for all rooms and points
     # so that we can change the values of the select fields based on other values
     rooms_points = get_rooms_points(building_names)
-    json = rooms_points_json(rooms_points)
+    json_res = rooms_points_json(rooms_points)
 
     html = render_template(
         'chart.html',
         buildings=building_names,
-        scripts=json,
+        scripts=json_res,
         result_components=results_components,
         allow_comparisons=False
     )
@@ -207,8 +204,8 @@ def generate_heatmap(data, keywords):
             colorkey = keywords['color']
     mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min(), high=data['pointvalue'].max())
     if data['pointvalue'].min() == data['pointvalue'].max():
-        mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min() - 1, high=data['pointvalue'].max() + 1)
-
+        mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min() - 1,
+                                   high=data['pointvalue'].max() + 1)
 
     source = ColumnDataSource(data)
     TOOLS = "hover,save,pan,box_zoom,reset,wheel_zoom"
@@ -414,6 +411,7 @@ def get_description_from_point_names(searches, search_results):
 
     return search_results
 
+
 # maps building ids to their points and rooms
 # ie {4:{'rooms':{5}}}
 def get_rooms_points(buildings):
@@ -448,7 +446,6 @@ def map_rooms(rooms):
 
 
 def room_inspector_df():
-
     bld = api.building('Hulings').id
     timestamp = '2017-08-18 00:45:00'
 
