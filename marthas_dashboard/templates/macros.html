@@ -72,11 +72,12 @@
 {% endmacro %}
 
 {% macro comparison(row) -%}
-    <tr>
-        <td class="dtcell">{{ row['name'] }}</td>
-        <td class="dtcell">{{ row['pointname'] }}</td>
-        <td class="dtcell">{{ row['units'] }}</td>
-        <td class="dtcell">{{ row['pointvalue']}}</td>
+    <tr class="room-comparison-row">
+        <td class="dtcell" headers="roomname" >{{ row['roomname'] }}</td>
+        <td class="dtcell" headers="pointname">{{ row['pointname'] }}</td>
+        <td class="dtcell" headers="units">{{ row['units'] }}</td>
+        <td class="dtcell" headers="pointvalue">{{ row['pointvalue']}}</td>
+        <td class="dtcell" headers="description">{{ row['description']}}</td>
     </tr>
 
 {% endmacro %}

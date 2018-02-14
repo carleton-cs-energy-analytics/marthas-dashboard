@@ -11,13 +11,14 @@ if(add_comparison.length > 0){
         add_comparison.style.display = 'none';
     });
 }
-if(close_comparison.length > 1){
+if(close_comparison.length > 1) {
     close_comparison = close_comparison[1];
-    close_comparison.addEventListener('click', function(event){
+    close_comparison.addEventListener('click', function (event) {
         comparison.classList.toggle("hidden");
         add_comparison.style.display = 'block';
     });
 }
+
 if(color_picker.length > 0){
     color_picker[0].addEventListener('change', constructComparisonUrl);
 }

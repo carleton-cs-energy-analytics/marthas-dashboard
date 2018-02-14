@@ -55,10 +55,10 @@ def compare():
 
     html = render_template(
         'chart.html',
-        buildings = building_names,
-        scripts = json,
-        result_components = results_components,
-        allow_comparisons = True
+        buildings=building_names,
+        scripts=json,
+        result_components=results_components,
+        allow_comparisons=True
     )
     return encode_utf8(html)
 
@@ -87,6 +87,7 @@ def alerts():
     rooms_points = get_rooms_points(building_names)
     json = rooms_points_json(rooms_points)
 
+
     html = render_template(
         'alerts.html',
         buildings = building_names,
@@ -96,15 +97,18 @@ def alerts():
     )
     return encode_utf8(html)
 
+
 @app.route('/room_comparison')
 def room_comparison():
 
-    building_names = api.buildings()  # Call API to get buildings for selector
+    building_names = api.buildings()
     times = generate_15_min_timestamps()  # Call helper function in room_comparison.py
 
     searches = request.args
     # request.args returns back a immutable multi-dictionary. We want to get these values
-    # back in order to be able to show them as the "selected" values.
+    # back in order to be able to show them as the "selected" values so we convert it to a
+    # dictionary we can edit.
+
     mutable_searches = {}
     for key, value in searches.items():
         mutable_searches[key] = value
@@ -120,19 +124,33 @@ def room_comparison():
     # do our searches and get the dataframe back
     search_results = get_room_comparison_results(searches)
 
+    # Call a helper function to add the room names and descriptions to the search results data frame.
+    # Only call the function if we actually got data for that query.
+    if search_results.shape != (0,0):
+        search_results = get_room_names_from_point_names(searches, search_results)
+        search_results = get_description_from_point_names(searches, search_results)
+
     # Currently we are going to limit the size of the dataframe until we decide
     # how to handle the number of points. TODO: Decide how to display points
     truncated_search_results = search_results.head()
 
-    result_components = searches # Save the values for the selectors
+    result_components = searches  # Save and pass back the values for the html form.
     result_components['dataframe'] = truncated_search_results
 
     html = render_template(
-        'building_comparison.html',
+        'room_comparison.html',
         buildings=building_names,
         result_components=result_components,
         timestamps=times
     )
+    return encode_utf8(html)
+
+@app.route('/room-inspector')
+def room_inspector():
+
+    searches = request.args
+    print(searches)
+    html = render_template("base.html")
     return encode_utf8(html)
 
 @app.route('/heatmap')
@@ -318,6 +336,71 @@ def get_results_components(searches, search_results, keywords):
         parts.append(result_components)
     return parts
 
+
+def get_room_names_from_point_names(searches, search_results):
+    """ A helper function that takes in the data frame from the api.building_values_at_time
+        query and then calls the api.building_rooms and api.building_points queries to
+        then map points from the building_values_at_time query to the room ids in building_points
+        followed by the room name in room_points.
+
+        Input:
+            searches: The search keywords as a dictionary
+            search_results: A dataframe returned from an api.building_values call
+        Output: The same dataframe with a new column called "roomname" added
+        """
+
+    # We get the building rooms in order to be able to display the correct NAME of a room for a point.
+    building_rooms = api.building_rooms(searches["building"])
+
+    # We get the building points to be able to get the room ID for a given point name.
+    building_points = api.building_points(searches["building"])
+
+    # Now we want to get the room id for each point in our search results
+    room_ids = []
+    for index, row in search_results.iterrows():
+        # First find the row in building_points that has a matching point name
+        row_in_building_points = building_points.loc[building_points["name"] == row["pointname"]]
+        target_room_id = row_in_building_points["roomid"].tolist()
+        room_ids.append(target_room_id[0])
+
+    # Now that we have the room ids, we can look up the value in building_rooms.
+    room_names = []
+    for id in room_ids:
+        row_in_building_rooms = building_rooms.loc[building_rooms["id"] == id]
+        target_room_name = row_in_building_rooms["name"].tolist()
+        room_names.append(target_room_name[0])
+
+    # Finally, add the column to the results dataframe specifying the room name.
+    search_results = search_results.assign(roomname=room_names)
+
+    return search_results
+
+
+def get_description_from_point_names(searches, search_results):
+    """ A helper function similar to the above function. Maps point names to descriptions
+        and then appends a new column to the search results table that is the description
+        of the point.
+        Input:
+            searches: The search keywords as a dictionary
+            search_results: A dataframe containing the search_results so far
+        Output: The same dataframe with a new column called "description" added
+    """
+
+    # We get the building points to be able to get the room ID for a given point name.
+    building_points = api.building_points(searches["building"])
+
+    # Now we want to get the room id for each point in our search results
+    descriptions = []
+    for index, row in search_results.iterrows():
+        # First find the row in building_points that has a matching point name
+        row_in_building_points = building_points.loc[building_points["name"] == row["pointname"]]
+        target_room_id = row_in_building_points["description"].tolist()
+        descriptions.append(target_room_id[0])
+
+    # Finally, add the column to the results dataframe specifying the description.
+    search_results = search_results.assign(description=descriptions)
+
+    return search_results
 
 # maps building ids to their points and rooms
 # ie {4:{'rooms':{5}}}
