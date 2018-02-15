@@ -9,9 +9,11 @@
             </select>
             <label>Point name</label>
             <select name="point">
-                <option {{ "selected" if point_name|indent(4)|safe == "LAB HOT H2O TEMP" }} value="511">LAB HOT H2O TEMP</option>
+                <option {{ "selected" if point_name|indent(4)|safe == "LAB HOT H2O TEMP" }} value="511">LAB HOT H2O TEMP
+                </option>
                 <option {{ "selected" if point_name|indent(4)|safe == "A1 CCL TEMP" }} value="512">A1 CCL TEMP</option>
-                <option {{ "selected" if point_name|indent(4)|safe == "AH2 AIR VOLU" }} value="513">AH2 AIR VOLU</option>
+                <option {{ "selected" if point_name|indent(4)|safe == "AH2 AIR VOLU" }} value="513">AH2 AIR VOLU
+                </option>
                 <option {{ "selected" if point_name|indent(4)|safe == "STATIC SET" }} value="514">STATIC SET</option>
             </select>
             <br>

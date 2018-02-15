@@ -1,36 +1,34 @@
 {% macro data_filter(data, buildings, i, allow_comparisons = True, hide = False, show_comparison_button = False ) -%}
-    <div class="result-{{i}} {% if hide %} hidden {% endif %} {% if allow_comparisons %} one-half{% endif %} column comparison">
+    <div class="result-{{ i }} {% if hide %} hidden {% endif %} {% if allow_comparisons %} one-half{% endif %} column comparison">
         <div class="params-container">
-            
-            
             <span class="close-comparison {% if i < 1 %} hidden {% endif %}right">X</span>
-            
-            <form name="{{i}}" class="filter_data" method='GET'>
+            <form name="{{ i }}" class="filter_data" method='GET'>
                 <label>Building:</label>
-                <select class="building_select" name="{{i}}_building">
+                <select class="building_select" name="{{ i }}_building">
                     {% for id, name in buildings.items() %}
-                        <option {{ "selected" if data.building|int == id|int }} value="{{id}}">{{name}}</option>
+                        <option {{ "selected" if data.building|int == id|int }} value="{{ id }}">{{ name }}</option>
                     {% endfor %}
                 </select>
                 {% if  allow_comparisons %}
-                <br/>
+                    <br/>
                 {% endif %}
                 <label>Point name:</label>
-                <select class="point_selector" name="{{i}}_point">
+                <select class="point_selector" name="{{ i }}_point">
                     {% for id,name in data.point_names.items() %}
-                    <option {{ "selected" if data.point|int == id|int }} value="{{id}}">{{name}}</option>
+                        <option {{ "selected" if data.point|int == id|int }} value="{{ id }}">{{ name }}</option>
                     {% endfor %}
                 </select>
                 <br/>
                 <label>From:</label>
-                <input type="date" name="{{i}}_from" value="{{ data.from }}">
+                <input type="date" name="{{ i }}_from" value="{{ data.from }}">
                 <label>To:</label>
-                <input type="date" name="{{i}}_to" value="{{ data.to }}"><br/>
+                <input type="date" name="{{ i }}_to" value="{{ data.to }}"><br/>
                 <button class="form_submit">Submit</button>
-            <button type="button" class="add-comparison {% if not show_comparison_button %} hidden {% endif%} right">+ Add Comparison</button>
-
-            </form> 
-
+                <button type="button"
+                        class="add-comparison {% if not show_comparison_button %} hidden {% endif %} right">+ Add
+                    Comparison
+                </button>
+            </form>
         </div>
         {{ data.plot |indent(4)|safe }}
     </div>
@@ -41,26 +39,22 @@
     <div class="result">
         <form class="building-comparison-select" method="GET">
             <label>Building:</label>
-            <select class="building_select" name="building">
+            <select class="building_select" name="building" id="building_select">
                 {% for id, name in buildings.items() %}
-                    <option {{ "selected" if data['building']|int == id|int}} value="{{id}}">{{name}}</option>
+                    <option {{ "selected" if data['building']|int == id|int }} value="{{ id }}">{{ name }}</option>
                 {% endfor %}
             </select>
             <label>Date:</label>
-            <input type="date" name="date" value="{{ data['date']|e }}">
+            <input type="date" name="date" id="date_select" value="{{ data['date']|e }}">
             <label>Timestamp:</label>
-            <select class="timestamp-select" name="timestamp">
+            <select class="timestamp-select" name="timestamp" id="timestamp_select">
                 {% for time in timestamps %}
                     <option value="{{ time }}" {{ "selected" if data['timestamp']|e == time }}>{{ time }}</option>
                 {% endfor %}
             </select>
-
             <button class="form_submit">Submit</button>
-
-
         </form>
     </div>
-
 {% endmacro %}
 
 
@@ -71,13 +65,14 @@
     </tr>
 {% endmacro %}
 
+
+{# Not currently in use! #}
 {% macro comparison(row) -%}
     <tr class="room-comparison-row">
-        <td class="dtcell" headers="roomname" >{{ row['roomname'] }}</td>
+        <td class="dtcell" headers="roomname">{{ row['roomname'] }}</td>
         <td class="dtcell" headers="pointname">{{ row['pointname'] }}</td>
         <td class="dtcell" headers="units">{{ row['units'] }}</td>
-        <td class="dtcell" headers="pointvalue">{{ row['pointvalue']}}</td>
-        <td class="dtcell" headers="description">{{ row['description']}}</td>
+        <td class="dtcell" headers="pointvalue">{{ row['pointvalue'] }}</td>
+        <td class="dtcell" headers="description">{{ row['description'] }}</td>
     </tr>
-
 {% endmacro %}
