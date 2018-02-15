@@ -115,6 +115,7 @@ def room_comparison():
         mutable_searches[key] = value
 
     searches = mutable_searches
+    # print(searches)
 
     # Just set some defaults if we didn't have any searches (I.e. this is the first loading)
     if len(searches) < 1:
@@ -124,12 +125,15 @@ def room_comparison():
 
     # do our searches and get the dataframe back
     search_results = get_room_comparison_results(searches)
+    print(search_results)
 
     # Call a helper function to add the room names and descriptions to the search results data frame.
     # Only call the function if we actually got data for that query.
     if search_results.shape != (0, 0):
         search_results = get_room_names_from_point_names(searches, search_results)
         search_results = get_description_from_point_names(searches, search_results)
+
+    print(search_results)
 
     # Currently we are going to limit the size of the dataframe until we decide
     # how to handle the number of points. TODO: Decide how to display points
@@ -313,8 +317,6 @@ def get_room_comparison_results(keywords):
     return data
 
 
-# from all of our data
-# generates plots, scripts and everything that we actually need to inject into the page
 def get_results_components(searches, search_results, keywords):
     """from all of our data, generates plots, scripts
     and everything that we actually need to inject into the page"""
