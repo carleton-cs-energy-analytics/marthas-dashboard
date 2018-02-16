@@ -1,30 +1,24 @@
 from marthas_dashboard import app
-import pandas as pd
 from flask import (request, redirect, url_for, render_template)
+import pandas as pd
+import json
+from datetime import (datetime, timedelta)
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
-from bokeh.embed import file_html
-from bokeh.io import show, output_file
 from bokeh.models import (
     ColumnDataSource,
     HoverTool,
     LinearColorMapper,
     AdaptiveTicker,
     PrintfTickFormatter,
-    ColorBar
-)
-from bokeh.layouts import column, row
-from bokeh.models import (
-    CustomJS, ColumnDataSource,
-    RadioButtonGroup, Select, Slider)
-from bokeh.plotting import (Figure, show)
+    ColorBar)
 from .colors import heatmap_colors
 from .api import API
 from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
-import json
-from datetime import (datetime, timedelta)
+
+from . import room_compare
 
 api = API()
 TIME_FMT = "%Y-%m-%d %H:%M:%S"
@@ -120,7 +114,7 @@ def room_comparison():
         searches = {'building': '4', 'date': '2017-08-18', 'timestamp': '00:00:00'}
 
     # do our searches and get the dataframe back
-    search_results = get_room_comparison_results(searches)
+    search_results = room_compare.get_room_comparison_results(searches)
     result_components = searches  # Save and pass back the values for the html form.
 
     html = render_template(
@@ -128,7 +122,7 @@ def room_comparison():
         buildings=building_names,
         result_components=result_components,
         dataframe=search_results,
-        timestamps=times
+        timestamps=times,
     )
     return encode_utf8(html)
 
@@ -136,81 +130,15 @@ def room_comparison():
 @app.route('/room-inspector')
 def room_inspector():
     searches = request.args
-    search_results = get_room_inspector_results(searches)
-    make_room_inspector_graph(search_results)
-    # result_components = make_room_inspector_graph(search_results)
+    search_results = room_compare.get_room_inspector_results(searches)
+    script, div = room_compare.make_room_inspector_graph(search_results)
 
     print(searches)
     html = render_template(
         "room_inspector.html",
         searches=searches,
-    )
+        script=script, div=div)
     return encode_utf8(html)
-
-
-def get_room_inspector_results(searches):
-
-    time_string = ' '.join([searches['date'], searches['timestamp']])  # get date info
-    ts = datetime.strptime(time_string, TIME_FMT)
-    start = (ts - timedelta(hours=12)).strftime(TIME_FMT)
-    end = (ts + timedelta(hours=12)).strftime(TIME_FMT)
-
-    blding_id = searches['building']
-    points = api.building_points(blding_id)
-    rooms = api.building_rooms(blding_id)
-    vals = api.building_values_in_range(blding_id, start, end)
-    rooms = rooms[rooms['name'] == searches['room']]  # just focus on selected room
-
-    # Merge df together
-    df = pd.merge(
-        points, rooms, left_on='roomid', right_on='id',
-        suffixes=('_point', '_room'))
-    df = pd.merge(df, vals, left_on='id_point', right_on='pointid', )
-
-    df['tag'] = 'none'
-    df_valve = df[df['description'].str.find('VALVE') > 0]  # description
-    df.loc[df_valve.index, 'tag'] = 'valve'
-    df_temp = df[df['name_point'].str.find('.RM') > 0]  # temp1
-    df.loc[df_temp.index, 'tag'] = 'temp1 (RM)'
-    df_temp = df[df['name_point'].str.find('.RMT') > 0]  # temp2
-    df.loc[df_temp.index, 'tag'] = 'temp2 (RMT)'
-
-    df['datetime'] = pd.to_datetime(df.date + ' ' + df.time)
-    view_df = df.query('tag != "none"')
-    view_df = (view_df.pivot(index='datetime', columns='tag', values='pointvalue')
-               .reset_index().rename_axis(None, axis=1))
-    return view_df
-
-
-def make_room_inspector_graph(view_df):
-
-    view_df['x'] = view_df['datetime']
-    view_df['y'] = view_df['valve']
-
-    tags = ['valve', 'temp1 (RM)', 'temp2 (RMT)']
-
-    source = ColumnDataSource(data=view_df)
-
-    plot = Figure(plot_width=400, plot_height=400, x_axis_type='datetime')
-
-    plot.line('x', 'y', source=source, line_width=2)
-
-    def callback(source=source, window=None):
-        data = source.data
-        attr = cb_obj.active
-        x = data['datetime']
-        y = data['temp1 (RM)']
-        for i in range(len(x)):
-            y[i] = window.Math.pow(x[i], 2)
-        source.change.emit()
-
-    radio_button_group = RadioButtonGroup(
-        labels=tags, active=0, callback=CustomJS.from_py_func(callback))
-
-    layout = column(radio_button_group, plot)
-    output_file("new_graph.html", title="new graph")
-    show(layout)
-    # return components(layout)
 
 
 @app.route('/heatmap')
@@ -244,6 +172,7 @@ def heatmap():
         result_components=results_components,
         allow_comparisons=False
     )
+
     return encode_utf8(html)
 
 
@@ -358,42 +287,6 @@ def do_searches(search_bins):
         data = api.point_values(search['point'], search['from'], search['to'])
         results.append(data)
     return results
-
-
-def get_room_comparison_results(keywords):
-    """Use arguments to build df for displaying"""
-
-    building_id, date, timestamp = keywords["building"], keywords["date"], keywords["timestamp"]
-    full_timestamp = datetime.strptime((date + " " + timestamp), "%Y-%m-%d %H:%M:%S")
-
-    rooms = api.building_rooms(building_id)
-    points = api.building_points(building_id)
-    vals = api.building_values_at_time(building_id, full_timestamp)
-
-    # Remove dummy rooms
-    rooms = rooms[rooms['name'].str.find('_Dummy_') < 0]
-
-    # Merge dfs together
-    df = pd.merge(points, rooms, left_on='roomid', right_on='id', suffixes=('_point', '_room'))
-    df = pd.merge(df, vals, left_on='id_point', right_on='pointid', )
-
-    # Attempt to tag points todo: Replace with Zephyr's tags
-    df['tag'] = 'none'
-    df_valve = df[df['description'].str.find('VALVE') > 0]  # tag 'valve'
-    df.loc[df_valve.index, 'tag'] = 'valve'
-    df_temp = df[df['name_point'].str.find('.RM') > 0]  # tag 'temp1'
-    df.loc[df_temp.index, 'tag'] = 'temp1 (RM)'
-    df_temp = df[df['name_point'].str.find('.RMT') > 0]  # tag 'temp2'
-    df.loc[df_temp.index, 'tag'] = 'temp2 (RMT)'
-
-    # Get values where tag is not 'none'
-    view_df = df.query('tag != "none"')
-
-    # Pivot
-    view_df = (view_df.pivot(index='name_room', columns='tag', values='pointvalue')
-               .reset_index().rename_axis(None, axis=1))
-
-    return view_df
 
 
 def get_results_components(searches, search_results, keywords):
