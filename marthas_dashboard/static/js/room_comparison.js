@@ -22,6 +22,10 @@ function constructRoomInspectorURL(e){
         }
     }
 
+    data["date"]= document.getElementById("date_select").value;
+    data["timestamp"] = document.getElementById("timestamp_select").value;
+    data["building"] = document.getElementById("building_select").value;
+
     var inputs = '?';
 
     for (const key in data) {

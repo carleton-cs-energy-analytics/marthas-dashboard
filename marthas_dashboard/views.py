@@ -1,6 +1,8 @@
 from marthas_dashboard import app
-import pandas as pd
 from flask import (request, redirect, url_for, render_template)
+import pandas as pd
+import json
+from datetime import (datetime, timedelta)
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
@@ -10,16 +12,16 @@ from bokeh.models import (
     LinearColorMapper,
     AdaptiveTicker,
     PrintfTickFormatter,
-    ColorBar
-)
+    ColorBar)
 from .colors import heatmap_colors
 from .api import API
 from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
-import json
-from datetime import datetime
+
+from . import room_compare
 
 api = API()
+TIME_FMT = "%Y-%m-%d %H:%M:%S"
 
 
 @app.route('/')
@@ -106,47 +108,21 @@ def room_comparison():
     times = generate_15_min_timestamps()  # Call helper function in room_comparison.py
 
     searches = request.args
-    # request.args returns back a immutable multi-dictionary. We want to get these values
-    # back in order to be able to show them as the "selected" values so we convert it to a
-    # dictionary we can edit.
-
-    mutable_searches = {}
-    for key, value in searches.items():
-        mutable_searches[key] = value
-
-    searches = mutable_searches
-    # print(searches)
 
     # Just set some defaults if we didn't have any searches (I.e. this is the first loading)
     if len(searches) < 1:
-        searches['building'] = '4'
-        searches['date'] = '2017-08-18'
-        searches['timestamp'] = '00:00:00'
+        searches = {'building': '4', 'date': '2017-08-18', 'timestamp': '00:00:00'}
 
     # do our searches and get the dataframe back
-    search_results = get_room_comparison_results(searches)
-    print(search_results)
-
-    # Call a helper function to add the room names and descriptions to the search results data frame.
-    # Only call the function if we actually got data for that query.
-    if search_results.shape != (0, 0):
-        search_results = get_room_names_from_point_names(searches, search_results)
-        search_results = get_description_from_point_names(searches, search_results)
-
-    print(search_results)
-
-    # Currently we are going to limit the size of the dataframe until we decide
-    # how to handle the number of points. TODO: Decide how to display points
-    truncated_search_results = search_results.head()
-
+    search_results = room_compare.get_room_comparison_results(searches)
     result_components = searches  # Save and pass back the values for the html form.
-    result_components['dataframe'] = truncated_search_results
 
     html = render_template(
         'room_comparison.html',
         buildings=building_names,
         result_components=result_components,
-        timestamps=times
+        dataframe=search_results,
+        timestamps=times,
     )
     return encode_utf8(html)
 
@@ -154,8 +130,14 @@ def room_comparison():
 @app.route('/room-inspector')
 def room_inspector():
     searches = request.args
+    search_results = room_compare.get_room_inspector_results(searches)
+    script, div = room_compare.make_room_inspector_graph(search_results)
+
     print(searches)
-    html = render_template("base.html")
+    html = render_template(
+        "room_inspector.html",
+        searches=searches,
+        script=script, div=div)
     return encode_utf8(html)
 
 
@@ -190,6 +172,7 @@ def heatmap():
         result_components=results_components,
         allow_comparisons=False
     )
+
     return encode_utf8(html)
 
 
@@ -306,17 +289,6 @@ def do_searches(search_bins):
     return results
 
 
-def get_room_comparison_results(keywords):
-    """ Function that does the api lookup for the room-comparison page.
-        Calls the api.building_values_at_time after using python's datetime to fix the timestamp"""
-
-    building_id, date, timestamp = keywords["building"], keywords["date"], keywords["timestamp"]
-    full_timestamp = datetime.strptime((date + " " + timestamp), "%Y-%m-%d %H:%M:%S")
-
-    data = api.building_values_at_time(building_id, full_timestamp)
-    return data
-
-
 def get_results_components(searches, search_results, keywords):
     """from all of our data, generates plots, scripts
     and everything that we actually need to inject into the page"""
@@ -348,74 +320,6 @@ def get_results_components(searches, search_results, keywords):
     return parts
 
 
-def get_room_names_from_point_names(searches, search_results):
-    """ A helper function that takes in the data frame from the api.building_values_at_time
-        query and then calls the api.building_rooms and api.building_points queries to
-        then map points from the building_values_at_time query to the room ids in building_points
-        followed by the room name in room_points.
-
-        Input:
-            searches: The search keywords as a dictionary
-            search_results: A dataframe returned from an api.building_values call
-        Output: The same dataframe with a new column called "roomname" added
-        """
-
-    # We get the building rooms in order to be able to display the correct NAME of a room for a point.
-    building_rooms = api.building_rooms(searches["building"])
-
-    # We get the building points to be able to get the room ID for a given point name.
-    building_points = api.building_points(searches["building"])
-
-    # Now we want to get the room id for each point in our search results
-    room_ids = []
-    for index, row in search_results.iterrows():
-        # First find the row in building_points that has a matching point name
-        row_in_building_points = building_points.loc[building_points["name"] == row["pointname"]]
-        target_room_id = row_in_building_points["roomid"].tolist()
-        room_ids.append(target_room_id[0])
-
-    # Now that we have the room ids, we can look up the value in building_rooms.
-    room_names = []
-    for id in room_ids:
-        row_in_building_rooms = building_rooms.loc[building_rooms["id"] == id]
-        target_room_name = row_in_building_rooms["name"].tolist()
-        room_names.append(target_room_name[0])
-
-    # Finally, add the column to the results dataframe specifying the room name.
-    search_results = search_results.assign(roomname=room_names)
-
-    return search_results
-
-
-def get_description_from_point_names(searches, search_results):
-    """ A helper function similar to the above function. Maps point names to descriptions
-        and then appends a new column to the search results table that is the description
-        of the point.
-        Input:
-            searches: The search keywords as a dictionary
-            search_results: A dataframe containing the search_results so far
-        Output: The same dataframe with a new column called "description" added
-    """
-
-    # We get the building points to be able to get the room ID for a given point name.
-    building_points = api.building_points(searches["building"])
-
-    # Now we want to get the room id for each point in our search results
-    descriptions = []
-    for index, row in search_results.iterrows():
-        # First find the row in building_points that has a matching point name
-        row_in_building_points = building_points.loc[building_points["name"] == row["pointname"]]
-        target_room_id = row_in_building_points["description"].tolist()
-        descriptions.append(target_room_id[0])
-
-    # Finally, add the column to the results dataframe specifying the description.
-    search_results = search_results.assign(description=descriptions)
-
-    return search_results
-
-
-# maps building ids to their points and rooms
-# ie {4:{'rooms':{5}}}
 def get_rooms_points(buildings):
     """maps building ids to their points and rooms,
     ie {4:{'rooms':{5}}}"""
@@ -445,48 +349,6 @@ def map_rooms(rooms):
     for index, row in rooms.iterrows():
         results[row['id']] = row['name'].replace("_", " ")
     return results
-
-
-def room_inspector_df():
-    bld = api.building('Hulings').id
-    timestamp = '2017-08-18 00:45:00'
-
-    # Load some data
-    rooms = api.building_rooms(bld)
-    points = api.building_points(bld)
-    vals = api.building_values_at_time(bld, timestamp)
-
-    # Remove room 6, the scary dummy room
-    rooms = rooms[rooms['id'] != 6]
-
-    # Merge df together
-    df = pd.merge(points, rooms, left_on='roomid', right_on='id', suffixes=('_point', '_room'))
-    df = pd.merge(df, vals, left_on='id_point', right_on='pointid', )
-
-    # Attempt to tag points
-
-    df['tag'] = 'none'
-
-    # Tag 'valve' based on description
-    df_valve = df[df['description'].str.find('VALVE') > 0]
-    df.loc[df_valve.index, 'tag'] = 'valve'
-
-    # Tag 'temp' based on point name
-    df_temp = df[df['name_point'].str.find('.RM') > 0]
-    df.loc[df_temp.index, 'tag'] = 'temp1 (RM)'
-
-    df_temp = df[df['name_point'].str.find('.RMT') > 0]
-    df.loc[df_temp.index, 'tag'] = 'temp2 (RMT)'
-
-    # View DF where tag is not "none
-    view_df = df.query('tag != "none"')
-
-    # Pivot
-    view_df = (view_df.pivot(index='name_room', columns='tag',
-                             values='pointvalue')
-               .reset_index().rename_axis(None, axis=1))
-
-    return view_df.to_html(index=False)
 
 
 def rooms_points_json(rooms_points):
