@@ -1,8 +1,6 @@
 from marthas_dashboard import app
 from flask import (request, redirect, url_for, render_template)
-import pandas as pd
 import json
-from datetime import (datetime, timedelta)
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
@@ -18,10 +16,9 @@ from .api import API
 from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
 
-from . import room_compare
+from . import tools
 
 api = API()
-TIME_FMT = "%Y-%m-%d %H:%M:%S"
 
 
 @app.route('/')
@@ -114,7 +111,7 @@ def room_comparison():
         searches = {'building': '4', 'date': '2017-08-18', 'timestamp': '00:00:00'}
 
     # do our searches and get the dataframe back
-    search_results = room_compare.get_room_comparison_results(searches)
+    search_results = tools.get_room_comparison_results(searches)
     result_components = searches  # Save and pass back the values for the html form.
 
     html = render_template(
@@ -130,8 +127,8 @@ def room_comparison():
 @app.route('/room-inspector')
 def room_inspector():
     searches = request.args
-    search_results = room_compare.get_room_inspector_results(searches)
-    script, div = room_compare.make_room_inspector_graph(search_results)
+    search_results = tools.get_room_inspector_results(searches)
+    script, div = tools.make_room_inspector_graph(search_results)
 
     print(searches)
     html = render_template(
