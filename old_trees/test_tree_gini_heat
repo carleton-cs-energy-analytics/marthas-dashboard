@@ -1,0 +1,29 @@
+digraph Tree {
+node [shape=box, style="filled, rounded", color="black", fontname=helvetica] ;
+edge [fontname=helvetica] ;
+0 [label=<OATEMP &le; 3.785<br/>gini = 0.75<br/>samples = 686<br/>value = [172, 174, 177, 163]<br/>class = (179.68, 180.14]>, fillcolor="#399de501"] ;
+1 [label=<OATEMP &le; 0.94<br/>gini = 0.676<br/>samples = 506<br/>value = [8, 160, 177, 161]<br/>class = (179.68, 180.14]>, fillcolor="#399de50c"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label=<EV.RM111.V &le; 99.12<br/>gini = 0.648<br/>samples = 429<br/>value = [0, 96, 173, 160]<br/>class = (179.68, 180.14]>, fillcolor="#399de50c"] ;
+1 -> 2 ;
+3 [label=<gini = 0.595<br/>samples = 260<br/>value = [0, 36, 90, 134]<br/>class = (180.14, 184.32]>, fillcolor="#d739e542"] ;
+2 -> 3 ;
+4 [label=<gini = 0.609<br/>samples = 169<br/>value = [0, 60, 83, 26]<br/>class = (179.68, 180.14]>, fillcolor="#399de536"] ;
+2 -> 4 ;
+5 [label=<EV.HX2.V1 &le; 0.025<br/>gini = 0.295<br/>samples = 77<br/>value = [8, 64, 4, 1]<br/>class = (174.598, 179.68]>, fillcolor="#47e539cf"] ;
+1 -> 5 ;
+6 [label=<gini = 0.205<br/>samples = 72<br/>value = [3, 64, 4, 1]<br/>class = (174.598, 179.68]>, fillcolor="#47e539e1"] ;
+5 -> 6 ;
+7 [label=<gini = 0.0<br/>samples = 5<br/>value = [5, 0, 0, 0]<br/>class = (121.179, 174.598]>, fillcolor="#e58139ff"] ;
+5 -> 7 ;
+8 [label=<EV.RM118.RT &le; 67.9<br/>gini = 0.164<br/>samples = 180<br/>value = [164, 14, 0, 2]<br/>class = (121.179, 174.598]>, fillcolor="#e58139e6"] ;
+0 -> 8 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+9 [label=<EV.RM109.V &le; 88.165<br/>gini = 0.058<br/>samples = 169<br/>value = [164, 3, 0, 2]<br/>class = (121.179, 174.598]>, fillcolor="#e58139f7"] ;
+8 -> 9 ;
+10 [label=<gini = 0.036<br/>samples = 164<br/>value = [161, 3, 0, 0]<br/>class = (121.179, 174.598]>, fillcolor="#e58139fa"] ;
+9 -> 10 ;
+11 [label=<gini = 0.48<br/>samples = 5<br/>value = [3, 0, 0, 2]<br/>class = (121.179, 174.598]>, fillcolor="#e5813955"] ;
+9 -> 11 ;
+12 [label=<gini = 0.0<br/>samples = 11<br/>value = [0, 11, 0, 0]<br/>class = (174.598, 179.68]>, fillcolor="#47e539ff"] ;
+8 -> 12 ;
+}

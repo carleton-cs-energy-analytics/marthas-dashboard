@@ -1,0 +1,17 @@
+digraph Tree {
+node [shape=box, style="filled, rounded", color="black", fontname=helvetica] ;
+edge [fontname=helvetica] ;
+0 [label=<EV.RMB4.V &le; 29.405<br/>entropy = 1.0<br/>samples = 687<br/>value = [344, 343]<br/>class = lessOrEqual42.8>, fillcolor="#e5813901"] ;
+1 [label=<EV.RMG10.RT &le; 68.51<br/>entropy = 0.988<br/>samples = 610<br/>value = [344, 266]<br/>class = lessOrEqual42.8>, fillcolor="#e581393a"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label=<EV.RMG18.RT &le; 64.73<br/>entropy = 0.979<br/>samples = 588<br/>value = [344, 244]<br/>class = lessOrEqual42.8>, fillcolor="#e581394a"] ;
+1 -> 2 ;
+3 [label=<entropy = 0.825<br/>samples = 170<br/>value = [126, 44]<br/>class = lessOrEqual42.8>, fillcolor="#e58139a6"] ;
+2 -> 3 ;
+4 [label=<entropy = 0.999<br/>samples = 418<br/>value = [218, 200]<br/>class = lessOrEqual42.8>, fillcolor="#e5813915"] ;
+2 -> 4 ;
+5 [label=<entropy = 0.0<br/>samples = 22<br/>value = [0, 22]<br/>class = greater42.8>, fillcolor="#399de5ff"] ;
+1 -> 5 ;
+6 [label=<entropy = 0.0<br/>samples = 77<br/>value = [0, 77]<br/>class = greater42.8>, fillcolor="#399de5ff"] ;
+0 -> 6 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+}
