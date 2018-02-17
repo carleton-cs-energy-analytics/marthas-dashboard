@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
 
-    <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.css" >
-    <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.css" >
+    <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.css">
+    <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.css">
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.11.min.css">
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.js"></script>
     <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.js"></script>
@@ -18,25 +18,37 @@
 
 </head>
 <body>
-    <div class="row">
-        <div class="three columns">
-            <div class="sidebar">
-                <ul class='sidebar-menu'>
-                    <a class="home" href="{{url_for('compare')}}"><li>Carleton Energy Analytics</li></a>
-                    <a href="{{url_for('compare')}}"><li>Comparison</li></a>
-                    <a href="{{url_for('heatmap')}}"><li>Heat Map</li></a>
-                    <a href="{{url_for('alerts')}}"><li>Alerts</li></a>
+<div class="row">
+    <div class="three columns">
+        <div class="sidebar">
+            <ul class='sidebar-menu'>
+                <a class="home" href="{{ url_for('compare') }}">
+                    <li>Carleton Energy Analytics</li>
+                </a>
+                <a href="{{ url_for('compare') }}">
+                    <li>Comparison</li>
+                </a>
+                <a href="{{ url_for('heatmap') }}">
+                    <li>Heat Map</li>
+                </a>
+                <a href="{{ url_for('alerts') }}">
+                    <li>Alerts</li>
+                </a>
+                <a href="{{ url_for('room_comparison') }}">
+                    <li>Room Comparison</li>
+                </a>
 
-                </ul>
-            </div>
-            &nbsp;
+            </ul>
         </div>
-        <div class="nine columns main-content">
-            {% block content %}{% endblock %}
-        </div>
+        &nbsp;
     </div>
-    <script type="text/javascript" src=" {{ url_for('static', filename='js/comparison.js') }}"></script>
-    <script type="text/javascript" src=" {{ url_for('static', filename='js/sorttable.js') }}"></script>
+    <div class="nine columns main-content">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+<script type="text/javascript" src=" {{ url_for('static', filename='js/comparison.js') }}"></script>
+<script type="text/javascript" src=" {{ url_for('static', filename='js/sorttable.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/room_comparison.js') }}"></script>
 
 </body>
 </html>

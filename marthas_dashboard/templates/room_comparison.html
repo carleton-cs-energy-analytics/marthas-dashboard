@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% import 'macros.html' as macros %}
+
+{% block content %}
+    {# Start by creating the building, date, and timestamp picker. #}
+    <div class="row chart-container">
+        <div class="seven columns">
+            {{ macros.generate_comparison_selector(result_components, buildings, timestamps) }}
+        </div>
+        <div class="nine columns">
+            <div class="comparison-container">
+                {% if dataframe|length > 0 %}
+                    <table class="room-comparisons sortable">
+                        <thead>
+                        <tr>
+                            <th class="roomcell">Room</th>
+                            <th>Temp 1 (RM)</th>
+                            <th>Temp 2 (RMT)</th>
+                            <th>Valve</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for idx, row in dataframe.iterrows() %}
+                            <tr class="room-comparison-row">
+                                <td class="dtcell" headers="room">{{ row['name_room'] }}</td>
+                                <td class="dtcell" headers="temp1">{{ row['temp1 (RM)'] }}</td>
+
+
+
+                                <td class="dtcell" headers="temp2">{{ row['temp2 (RMT)'] }}</td>
+                                <td class="dtcell" headers="valve">{{ row['valve'] }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    No Data found for that query!
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

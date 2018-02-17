@@ -7,14 +7,20 @@ Project currently modeled off these resources:
 
 ## Setup
 
+Create/activate virtual environment (optional)
 ```bash
-# Create/activate virtual environment (optional)
 mkdir venvs
 cd venvs
 python3 -m venv marthas_dashboard
 source marthas_dashboard/bin/activate
+```
 
-# install flask app (Inside the cloned repo) (NOT optional)
+Install flask app (Inside the cloned repo) (NOT optional)
+```
+# install packages
+pip install bokeh flask
+
+# editable install of marthas_dashboard
 pip install -e .
 ```
 
