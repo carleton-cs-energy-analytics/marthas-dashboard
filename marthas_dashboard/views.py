@@ -149,7 +149,7 @@ def room_comparison():
             pivoted_df = pivot_df(filtered_df)
 
             # If less than 3% of the points are taking up one cluster, then:
-            size_threshold = df.shape[0] * 0.03
+            size_threshold = pivoted_df.shape[0] * 0.03
 
             # See the function analysis.anomaly_detection.anomaly_detection.py for details on what these values mean.
             anomalous_pts.append(return_anomalous_points(pivoted_df, n_clusters=4, n_init=10, std_threshold=3, size_threshold=size_threshold))
@@ -158,7 +158,6 @@ def room_comparison():
         for array in anomalous_pts:
             for item in array:
                 concat_arrays.append(item)
-        print("Fixed array: \n", concat_arrays)
         anomalous_pts = concat_arrays
 
     html = render_template(
