@@ -72,6 +72,13 @@ th{
 .dtcell{
     border-right: 1px solid #e1e1e1;
 }
+
+.anomalouscell{
+    border-right: 1px solid #e1e1e1;
+    background-color: #f44842;
+    opacity: 0.6;
+
+}
 .sorttable_sorted{
 
 }

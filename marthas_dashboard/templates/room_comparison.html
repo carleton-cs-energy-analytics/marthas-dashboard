@@ -22,11 +22,12 @@
                         <tbody>
                         {% for idx, row in dataframe.iterrows() %}
                             <tr class="room-comparison-row">
-                                <td class="dtcell" headers="room">{{ row['name_room'] }}</td>
-                                <td class="dtcell" headers="temp1">{{ row['temp1 (RM)'] }}</td>
 
-                                <td class="dtcell" headers="temp2">{{ row['temp2 (RMT)'] }}</td>
-                                <td class="dtcell" headers="valve">{{ row['valve'] }}</td>
+
+                                <td class="dtcell" headers="room">{{ row['name_room'] }}</td>
+                                {# This macro creates the rest of the table cells based on the list of anomalies #}
+                                {{ macros.generate_tr(row, anomalous_pts) }}
+
                             </tr>
                         {% endfor %}
                         </tbody>

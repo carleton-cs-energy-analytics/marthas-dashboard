@@ -119,6 +119,7 @@ def room_comparison():
     times = generate_15_min_timestamps()  # Call helper function in room_comparison.py
 
     searches = request.args
+    print("Searches: ", searches)
 
     # Just set some defaults if we didn't have any searches (I.e. this is the first loading)
     if len(searches) < 1:
@@ -127,9 +128,9 @@ def room_comparison():
     # do our searches and get the dataframe back
     search_results = tools.get_room_comparison_results(searches)
 
-
     result_components = searches  # Save and pass back the values for the html form.
 
+    anomalous_pts = []
     if "detect-anomalies" in searches:
         start_date = searches["date"] + " 00:00:00"
         end_date = searches["date"] + " 23:45:00"
@@ -137,27 +138,35 @@ def room_comparison():
 
         # TODO: Here we filter the result of the ONE call based on "temp1, temp 2, and valve
         # based on Dustin's new columns
-        point_id_for_tmp1 = search_results["COLUMNNAMEINDF"].tolist()
-        point_id_for_tmp2 = search_results["OTHER COLUMN POINT NAME"].tolist()
-        point_id_for_valve = search_results["VALVE COLUMN NAME"].tolist()
+        point_ids_for_valve = search_results["pointid_valve"].tolist()
+        point_ids_for_tmp1 = search_results["pointid_temp1 (RM)"].tolist()
+        point_ids_for_tmp2 = search_results["pointid_temp2 (RMT)"].tolist()
+        point_ids = [point_ids_for_valve, point_ids_for_tmp1, point_ids_for_tmp2]
 
+        for point_id_list in point_ids:
+            filtered_df = filter_df(df, point_id_list)
+            # Pivot the dataframe into the shape that the anomaly detection needs it to be.
+            pivoted_df = pivot_df(filtered_df)
 
-        filtered_df = filter_df(df, list_of_pointids)
-        # Pivot the dataframe into the shape that the anomaly detection needs it to be.
-        pivoted_df = pivot_df(filtered_df)
+            # If less than 3% of the points are taking up one cluster, then:
+            size_threshold = df.shape[0] * 0.03
 
-        # If less than 3% of the points are taking up one cluster
-        size_threshold = df.shape[0] * 0.03
+            # See the function analysis.anomaly_detection.anomaly_detection.py for details on what these values mean.
+            anomalous_pts.append(return_anomalous_points(pivoted_df, n_clusters=4, n_init=10, std_threshold=3, size_threshold=size_threshold))
 
-        # See the function analysis.anomaly_detection.anomaly_detection.py for details on what these values mean.
-        anomalous_pts = return_anomalous_points(pivoted_df, n_clusters=4, n_init=10, std_threshold=3, size_threshold=size_threshold)
-        print(anomalous_pts)
+        concat_arrays = []
+        for array in anomalous_pts:
+            for item in array:
+                concat_arrays.append(item)
+        print("Fixed array: \n", concat_arrays)
+        anomalous_pts = concat_arrays
 
     html = render_template(
         'room_comparison.html',
         buildings=building_names,
         result_components=result_components,
         dataframe=search_results,
+        anomalous_pts=anomalous_pts,
         timestamps=times,
     )
     return encode_utf8(html)
