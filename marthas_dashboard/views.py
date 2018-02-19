@@ -174,11 +174,13 @@ def room_comparison():
 @app.route('/room-inspector')
 def room_inspector():
     searches = request.args
+    building_name = api.buildings()[int(searches['building'])]
     search_results = tools.get_room_inspector_results(searches)
-    script, div = tools.make_room_inspector_graph(search_results)
+    script, div = tools.make_all_room_inspector_graphs(search_results)
     html = render_template(
         "room_inspector.html",
         searches=searches,
+        building_name=building_name,
         script=script, div=div)
     return encode_utf8(html)
 

@@ -9,6 +9,7 @@ from datetime import (datetime, timedelta)
 import pandas as pd
 from bokeh.embed import components
 from bokeh.plotting import figure
+from bokeh.layouts import row
 
 from marthas_dashboard.api import API
 
@@ -78,11 +79,27 @@ def get_room_inspector_results(searches):
             .reset_index().rename_axis(None, axis=1))
 
 
-def make_room_inspector_graph(view_df):
+def make_all_room_inspector_graphs(df):
     """Creates Bokeh plots for room inspector, once table cell clicked"""
-    plot = figure(plot_width=400, plot_height=400, x_axis_type='datetime')
-    plot.line(view_df['datetime'], view_df['valve'], line_width=2)
-    return components(plot)
+
+    # tags is list of column names, excluding datetime
+    tags = list(df.set_index('datetime').columns)
+
+    # Make a plot for each tag
+    plots = [make_room_inspector_graph(df, tag) for tag in tags]
+
+    # Put plots in a "row" layout
+    return components(row(plots))
+
+
+def make_room_inspector_graph(df, tag):
+    """Creates Bokeh plots for room inspector, once table cell clicked"""
+    p = figure(plot_width=300, plot_height=300, x_axis_type='datetime')
+    p.line(df['datetime'], df[tag], line_width=2)
+    p.xaxis.axis_label = "time"
+    p.yaxis.axis_label = tag
+    p.toolbar.logo = None
+    return p
 
 
 def hacky_tagging(df):
