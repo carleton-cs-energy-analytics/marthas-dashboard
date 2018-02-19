@@ -1,4 +1,5 @@
 from marthas_dashboard import app
+from analysis.anomaly_detection.anomaly_detection import return_anomalous_points, pivot_df
 from flask import (request, redirect, url_for, render_template)
 import json
 from bokeh.embed import components
@@ -15,8 +16,8 @@ from .colors import heatmap_colors
 from .api import API
 from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
-
 from . import tools
+import pandas as pd
 
 api = API()
 
@@ -99,6 +100,19 @@ def alerts():
     return encode_utf8(html)
 
 
+def filter_df(df, list_of_pointids):
+    filtered_dfs = []
+    for point_id in list_of_pointids:
+        new_filtered_df = df.query("pointid == {}".format(point_id))
+        filtered_dfs.append(new_filtered_df)
+
+    # Now merge them all together for passing to the anomaly detector.
+
+    filtered_df = pd.concat(filtered_dfs)
+
+    return filtered_df
+
+
 @app.route('/room_comparison')
 def room_comparison():
     building_names = api.buildings()
@@ -112,7 +126,32 @@ def room_comparison():
 
     # do our searches and get the dataframe back
     search_results = tools.get_room_comparison_results(searches)
+
+
     result_components = searches  # Save and pass back the values for the html form.
+
+    if "detect-anomalies" in searches:
+        start_date = searches["date"] + " 00:00:00"
+        end_date = searches["date"] + " 23:45:00"
+        df = api.building_values_in_range(searches["building"], start_date, end_date)
+
+        # TODO: Here we filter the result of the ONE call based on "temp1, temp 2, and valve
+        # based on Dustin's new columns
+        point_id_for_tmp1 = search_results["COLUMNNAMEINDF"].tolist()
+        point_id_for_tmp2 = search_results["OTHER COLUMN POINT NAME"].tolist()
+        point_id_for_valve = search_results["VALVE COLUMN NAME"].tolist()
+
+
+        filtered_df = filter_df(df, list_of_pointids)
+        # Pivot the dataframe into the shape that the anomaly detection needs it to be.
+        pivoted_df = pivot_df(filtered_df)
+
+        # If less than 3% of the points are taking up one cluster
+        size_threshold = df.shape[0] * 0.03
+
+        # See the function analysis.anomaly_detection.anomaly_detection.py for details on what these values mean.
+        anomalous_pts = return_anomalous_points(pivoted_df, n_clusters=4, n_init=10, std_threshold=3, size_threshold=size_threshold)
+        print(anomalous_pts)
 
     html = render_template(
         'room_comparison.html',

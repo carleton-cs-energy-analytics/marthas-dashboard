@@ -52,7 +52,13 @@
                     <option value="{{ time }}" {{ "selected" if data['timestamp']|e == time }}>{{ time }}</option>
                 {% endfor %}
             </select>
+            <div>
+                <label for="detect-anomalies">Detect Anomalies: </label>
+                <input id="detect-anomalies" name="detect-anomalies" type="checkbox" value="True">
+
+            </div>
             <button class="form_submit">Submit</button>
+
         </form>
     </div>
 {% endmacro %}

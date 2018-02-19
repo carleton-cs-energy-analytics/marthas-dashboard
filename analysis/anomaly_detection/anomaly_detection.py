@@ -288,7 +288,9 @@ def main():
     start = date(2016,6,1)
     end = date(2016,8,31)
     df = grabAndPivotAllDaysInRangeForPoint(1652, start, end)
-    cluster_and_plot_anomalies(df, 4, 10, 3,  df.shape[0]*0.03)
+    #cluster_and_plot_anomalies(df, 4, 10, 3,  df.shape[0]*0.03)
+    an_pt = return_anomalous_points(df, 4, 10, 3, df.shape[0]*0.03)
+    print(an_pt)
 
 
 if __name__ == '__main__':
