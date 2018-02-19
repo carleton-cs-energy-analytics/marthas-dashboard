@@ -168,8 +168,6 @@ def room_inspector():
     searches = request.args
     search_results = tools.get_room_inspector_results(searches)
     script, div = tools.make_room_inspector_graph(search_results)
-
-    print(searches)
     html = render_template(
         "room_inspector.html",
         searches=searches,
