@@ -20,7 +20,6 @@ from .room_comparison import generate_15_min_timestamps
 from . import tools
 import pandas as pd
 import datetime
-import time
 from werkzeug.contrib.cache import SimpleCache
 
 api = API()
@@ -34,15 +33,12 @@ def index():
 
 @app.route('/compare')
 def compare():
-    millis = int(round(time.time() * 1000))
     building_names = api.buildings()
 
     searches, keywords = create_search_bins(request.args)
     # Keywords are all the get params that aren't part of the comparison form
     # eg color map
     # basically just use them to pass around data to the portion of this that generates the actual graphs
-    print("A")
-    print(int(round(time.time() * 1000)) - millis)
 
     if len(searches) < 1:
         searches[0] = {}
@@ -54,22 +50,15 @@ def compare():
 
     # do our searches and get the components we need to inject there
     search_results = do_searches(searches)
-    print("C")
-    print(int(round(time.time() * 1000)) - millis)
 
     keywords['graphtype'] = 'compare'
     results_components = get_results_components(searches, search_results, keywords)
-    print(int(round(time.time() * 1000)) - millis)
-
-    print("D")
 
     # get our json for all rooms and points
     # so that we can change the values of the select fields based on other values
     rooms_points = get_rooms_points(building_names)
-    print(int(round(time.time() * 1000)) - millis)
 
     json_res = rooms_points_json(rooms_points)
-    print(int(round(time.time() * 1000)) - millis)
 
     html = render_template(
         'chart.html',
@@ -78,7 +67,6 @@ def compare():
         result_components=results_components,
         allow_comparisons=True
     )
-    print(int(round(time.time() * 1000)) - millis)
     return encode_utf8(html)
 
 
