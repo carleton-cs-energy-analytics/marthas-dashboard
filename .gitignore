@@ -9,6 +9,10 @@ venvs
 *.pdf
 *.png
 
+# Jetbrains
+*.idea/
+
+
 # Node
 .eslintrc.js
 node_modules/
