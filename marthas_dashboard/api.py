@@ -75,7 +75,7 @@ class API:
 
     def building_values_in_range(self, building_id, start, end):
         """
-        param building_id: eg, '4'
+        :param building_id: eg, '4'
         :param start: eg, '2017-08-19'
         :param end: eg, '2017-08-19'
         :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
@@ -90,7 +90,7 @@ class API:
         """
         return self.query_url(['values', 'building', building_id, timestamp])
 
-    def values_at_time(self,timestamp):
+    def values_at_time(self, timestamp):
         """
         :param building_id: eg, '4'
         :param timestamp: eg, 2017-08-18 00:45:00
@@ -109,6 +109,7 @@ class API:
         :return: pd.DataFrame [factor, id, name, pointid, pointtimestamp, pointvalue, returntype, units]
         """
         return self.query_url(['values', 'building', building_id, start, end, 'type', point_type])
+
     def building_values_in_range_by_source(self, building_id, start, end, source_id):
         """
         :param building_id: eg, '4'
@@ -126,6 +127,7 @@ class API:
 
         url = self.base_url + endpoint
         r = requests.get(url)
+
         try:
             df = pd.read_json(r.text)
         except ValueError:
@@ -137,17 +139,3 @@ class API:
                 df['date'] = df[col].dt.strftime('%Y-%m-%d')
                 df['time'] = df[col].dt.strftime('%H:%M')
         return df
-
-# Just for experimenting!
-if __name__ == "__main__":
-    api = API()
-
-    build = api.buildings()
-    print(build)
-
-    pts = api.building_points('4')
-    print(pts)
-
-    data = api.point_values('511', '2016-08-18', '2017-08-19')
-    print(data.head())
-    print(data.tail())
