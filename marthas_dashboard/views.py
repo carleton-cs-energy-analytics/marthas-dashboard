@@ -8,6 +8,7 @@ from bokeh.plotting import figure
 from bokeh.models import (
     ColumnDataSource,
     HoverTool,
+    LabelSet,
     LinearColorMapper,
     AdaptiveTicker,
     PrintfTickFormatter,
@@ -18,8 +19,12 @@ from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
 from . import tools
 import pandas as pd
+import datetime
+import time
+from werkzeug.contrib.cache import SimpleCache
 
 api = API()
+cache = SimpleCache()
 
 
 @app.route('/')
@@ -29,12 +34,15 @@ def index():
 
 @app.route('/compare')
 def compare():
+    millis = int(round(time.time() * 1000))
     building_names = api.buildings()
 
     searches, keywords = create_search_bins(request.args)
     # Keywords are all the get params that aren't part of the comparison form
     # eg color map
     # basically just use them to pass around data to the portion of this that generates the actual graphs
+    print("A")
+    print(int(round(time.time() * 1000)) - millis)
 
     if len(searches) < 1:
         searches[0] = {}
@@ -46,13 +54,22 @@ def compare():
 
     # do our searches and get the components we need to inject there
     search_results = do_searches(searches)
+    print("C")
+    print(int(round(time.time() * 1000)) - millis)
+
     keywords['graphtype'] = 'compare'
     results_components = get_results_components(searches, search_results, keywords)
+    print(int(round(time.time() * 1000)) - millis)
+
+    print("D")
 
     # get our json for all rooms and points
     # so that we can change the values of the select fields based on other values
     rooms_points = get_rooms_points(building_names)
+    print(int(round(time.time() * 1000)) - millis)
+
     json_res = rooms_points_json(rooms_points)
+    print(int(round(time.time() * 1000)) - millis)
 
     html = render_template(
         'chart.html',
@@ -61,6 +78,7 @@ def compare():
         result_components=results_components,
         allow_comparisons=True
     )
+    print(int(round(time.time() * 1000)) - millis)
     return encode_utf8(html)
 
 
@@ -229,6 +247,7 @@ def generate_figure(data, keywords):
 def generate_heatmap(data, keywords):
     colors = heatmap_colors
     colorkey = 'red-blue'
+    data = data.sort_values(by='pointtimestamp')
 
     if 'color' in keywords:
         if keywords['color'] in colors:
@@ -283,17 +302,21 @@ def generate_heatmap(data, keywords):
 def generate_line_graph(data, keywords):
     x = data['pointtimestamp']
     y = data['pointvalue']
+    data['pointtime'] = data['date'] +" "+ data['time']
 
     # Make figure
     hover = HoverTool(
-        tooltips=[('date', '$x'), ('y', '$y')],
-        formatters={'date': 'datetime'},
+        tooltips=[('Date', '@pointtime'), ('Value', '$y')],
         mode='vline',
     )
     tools = ['pan', 'box_zoom', 'wheel_zoom', 'save', 'reset', 'lasso_select', hover]
 
     fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime", tools=tools)
-    fig.line(x, y, color="navy", alpha=0.5)
+    source = ColumnDataSource(data)
+    labels = LabelSet(x="pointvale", y="pointtimestamp", text="pointtime", y_offset=8,
+                  text_font_size="8pt", text_color="#555555",
+                  source=source, text_align='center')
+    fig.line('pointtimestamp', 'pointvalue', source=source, color="navy", alpha=0.5)
     fig.toolbar.logo = None
     return components(fig)  # Embed figure in template
 
@@ -369,10 +392,13 @@ def get_rooms_points(buildings):
     ie {4:{'rooms':{5}}}"""
     result = {}
     for building_id, name in buildings.items():
-        building_data = {
-            'rooms': map_rooms(api.building_rooms(building_id)),
-            'points': map_points(api.building_points(building_id))
-        }
+        building_data = cache.get('building_data_'+str(building_id))
+        if building_data is None:
+            building_data = {
+                'rooms': map_rooms(api.building_rooms(building_id)),
+                'points': map_points(api.building_points(building_id))
+            }
+            cache.set('building_data_'+str(building_id), building_data)
         result[building_id] = building_data
     return result
 

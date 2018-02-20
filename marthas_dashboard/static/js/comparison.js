@@ -39,11 +39,11 @@ function constructComparisonUrl(event) {
         var form_selects = form.getElementsByTagName("select");
 
         for (var j = 0; j < form_inputs.length; j++) {
-            inputs = inputs + addInputUrl(form_inputs[j]);
+            inputs = inputs + addComparisonInputUrl(form_inputs[j]);
         }
         ;
         for (var j = 0; j < form_selects.length; j++) {
-            inputs = inputs + addInputUrl(form_selects[j]);
+            inputs = inputs + addComparisonInputUrl(form_selects[j]);
         }
         ;
         // get all elements
@@ -55,7 +55,7 @@ function constructComparisonUrl(event) {
     }
     window.location.href = window.location.protocol + "//" + window.location.host + window.location.pathname + inputs;
 }
-function addInputUrl(el) {
+function addComparisonInputUrl(el) {
     return el.name + '=' + el.value + '&';
 }
 
