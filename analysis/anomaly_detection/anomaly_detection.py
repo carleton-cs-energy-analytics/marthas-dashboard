@@ -2,6 +2,7 @@ from marthas_dashboard.api import *
 from sklearn import metrics
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from mpl_toolkits.mplot3d import Axes3D # Have to keep so that can use '3d' projection
 from math import ceil
 import numpy as np
@@ -42,18 +43,21 @@ def grabAndPivotAllDaysInRangeForPoint(point_id, start_date, end_date):
         to_string = str(to_date)
         littledf = api.point_values(point_id, from_string + " 00:00", to_string + " 00:00")
 
-        df_pivot = (littledf
+        try:
+            df_pivot = (littledf
                     .groupby(['pointname', 'pointtimestamp'])['pointvalue']
                     .sum().unstack().reset_index().fillna(0)
                     .set_index('pointname'))
-        new_columns = []
-        for colname in df_pivot.columns:
-            new_columns.append(str(colname).split(" ")[1])
-        df_pivot.columns = new_columns
-        new_index = [df_pivot.index[0] + str(from_date)]
-        df_pivot.index = new_index
+            new_columns = []
+            for colname in df_pivot.columns:
+                new_columns.append(str(colname).split(" ")[1])
+            df_pivot.columns = new_columns
+            new_index = [df_pivot.index[0] + str(from_date)]
+            df_pivot.index = new_index
 
-        df_list.append(df_pivot)
+            df_list.append(df_pivot)
+        except KeyError:
+            print("No data for point id " + str(point_id) + " on date " + str(from_date))
     result = pd.concat(df_list)
     return result
 
@@ -193,7 +197,7 @@ def std_anomaly_detection(df, clusterings, cluster_centers, num_std, size_thresh
     return anomalous
 
 
-def plot_timeline(df, clusterings, cluster_centers, anomalous):
+def plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab, xtick_names):
     """
     Plots the values per time of all points in a cluster, highlighting anomalies as red
     :param df: dataframe of points
@@ -211,15 +215,23 @@ def plot_timeline(df, clusterings, cluster_centers, anomalous):
         else:
             color = "black"
         plt.figure(cluster)
-        plt.plot(row.tolist(), c=color)
+        plt.plot(pd.to_datetime(df.columns).to_pydatetime(), row.tolist(), c=color)
         index += 1
+
+    hours = mdates.HourLocator()
+    hourFormat = mdates.DateFormatter("%H:%M")
 
     for i in range(len(cluster_centers)):
         plt.figure(i)
+        ax = plt.axes()
+        ax.xaxis.set_major_locator(hours)
+        ax.xaxis.set_major_formatter(hourFormat)
         #plt.plot(cluster_centers[i], c="blue")
         #plt.ylim(-5,105)
-        plt.ylabel("cluster" + str(i))
-        plt.xticks(np.arange(df.shape[1]),df.columns, rotation=90)
+        plt.title(title + ": Cluster " + str(i))
+        plt.ylabel(ylab)
+        plt.xlabel(xlab)
+        plt.xticks(rotation=70)
         plt.savefig("cluster"+str(i)+"_timeline.png", bbox_inches='tight')
 
 
@@ -245,17 +257,24 @@ def plot_anomalies_all(df, anomalous):
     plt.savefig("all_anomalies.png", bbox_inches = 'tight')
 
 
-def cluster_and_plot_anomalies(df, n_clusters, n_init, std_threshold, size_threshold):
+def cluster_and_plot_anomalies(df, n_clusters, n_init, std_threshold, size_threshold, title, xlab, ylab, xtick_names):
 
     # cluster and find anomalies
     kmeans = KMeans(n_clusters=n_clusters, init='k-means++', n_init=n_init)
-    clusterings = kmeans.fit_predict(df)
+    try:
+        clusterings = kmeans.fit_predict(df)
+    except ValueError:
+        old_rows = df.shape[0]
+        df = df.dropna(axis = 0, how = 'any')
+        new_rows = df.shape[0]
+        print("Dropped " + str(old_rows - new_rows) + " rows with NaN values, " + str(new_rows) + " rows remaining")
+        clusterings = kmeans.fit_predict(df)
     cluster_centers = kmeans.cluster_centers_.tolist()
     anomalous = std_anomaly_detection(df, clusterings, cluster_centers, std_threshold, size_threshold)
 
     print(metrics.silhouette_score(df, clusterings))
 
-    plot_timeline(df, clusterings, cluster_centers, anomalous)
+    plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab, xtick_names)
     #plot_cluster_distance_3d(dist_to_clusters=kmeans.transform(df), labels=kmeans.labels_)
     #plot_cluster_distance_2d(dist_to_clusters=kmeans.transform(df),
                              #labels=kmeans.labels_, anomalies=anomalous)
@@ -273,6 +292,7 @@ def return_anomalous_points(df, n_clusters, n_init, std_threshold, size_threshol
     :return: anomalous_point_names, a list of point names that we have flagged as anomalies
     '''
     kmeans = KMeans(n_clusters=n_clusters, init='k-means++', n_init=n_init)
+    # TODO: account for possible NaN values
     clusterings = kmeans.fit_predict(df)
     cluster_centers = kmeans.cluster_centers_.tolist()
     anomalous = std_anomaly_detection(df, clusterings, cluster_centers, std_threshold, size_threshold)
@@ -282,14 +302,25 @@ def return_anomalous_points(df, n_clusters, n_init, std_threshold, size_threshol
     return anomalous_point_names
 
 
+def get_xtick_names(num_xticks, possible_names):
+    step_size = round(len(possible_names) / float(num_xticks))
+    return list(range(0,len(possible_names), step_size))
+
+
+
+
 def main():
     #df = grabAllPointsInBuildingByType(27, '2017-12-20 00:00', '2017-12-21 00:00', 'ROOM TEMP')
-    #df = pivot_df(df)
-    start = date(2016,6,1)
-    end = date(2016,8,31)
-    df = grabAndPivotAllDaysInRangeForPoint(1652, start, end)
-    cluster_and_plot_anomalies(df, 4, 10, 3,  df.shape[0]*0.03)
-
+    df = api.building_values_in_range_by_type(45, '2017-12-27 00:00', '2017-12-28 00:00', 4922)
+    df = pivot_df(df)
+    # start = date(2017,11,1)
+    # end = date(2018,1,31)
+    # df = grabAndPivotAllDaysInRangeForPoint(938, start, end)
+    title = "Room Temp in Evans on 12/27"
+    xlab = "Time of day"
+    ylab = "Room temperature"
+    xtick_names = get_xtick_names(24, df.columns)
+    cluster_and_plot_anomalies(df, 3, 10, 3,  df.shape[0]*0.03, title, xlab, ylab, xtick_names)
 
 if __name__ == '__main__':
     #plot_anomalies_all(4, 10)
