@@ -198,7 +198,7 @@ def std_anomaly_detection(df, clusterings, cluster_centers, num_std, size_thresh
     return anomalous
 
 
-def plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab, xtick_names):
+def plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab):
     """
     Plots the values per time of all points in a cluster, highlighting anomalies as red
     :param df: dataframe of points
@@ -260,7 +260,7 @@ def plot_anomalies_all(df, anomalous):
     plt.savefig("all_anomalies.png", bbox_inches = 'tight')
 
 
-def cluster_and_plot_anomalies(df, n_clusters, n_init, std_threshold, size_threshold, title, xlab, ylab, xtick_names):
+def cluster_and_plot_anomalies(df, n_clusters, n_init, std_threshold, size_threshold, title, xlab, ylab):
 
     # cluster and find anomalies
     kmeans = KMeans(n_clusters=n_clusters, init='k-means++', n_init=n_init)
@@ -277,7 +277,7 @@ def cluster_and_plot_anomalies(df, n_clusters, n_init, std_threshold, size_thres
 
     print(metrics.silhouette_score(df, clusterings))
 
-    plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab, xtick_names)
+    plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab)
     #plot_cluster_distance_3d(dist_to_clusters=kmeans.transform(df), labels=kmeans.labels_)
     #plot_cluster_distance_2d(dist_to_clusters=kmeans.transform(df),
                              #labels=kmeans.labels_, anomalies=anomalous)
@@ -305,25 +305,18 @@ def return_anomalous_points(df, n_clusters, n_init, std_threshold, size_threshol
     return anomalous_point_names
 
 
-def get_xtick_names(num_xticks, possible_names):
-    step_size = round(len(possible_names) / float(num_xticks))
-    return list(range(0,len(possible_names), step_size))
-
-
-
-
 def plot_main():
     #df = grabAllPointsInBuildingByType(27, '2017-12-20 00:00', '2017-12-21 00:00', 'ROOM TEMP')
-    df = api.building_values_in_range_by_type(45, '2017-12-27 00:00', '2017-12-28 00:00', 4922)
+    df = api.building_values_in_range_by_type(45, '2017-12-20 00:00', '2017-12-21 00:00', 4922)
     df = pivot_df(df)
     # start = date(2017,11,1)
     # end = date(2018,1,31)
     # df = grabAndPivotAllDaysInRangeForPoint(938, start, end)
-    title = "Room Temp in Evans on 12/27"
+    title = "Room Temp in Evans on 12/20"
     xlab = "Time of day"
     ylab = "Room temperature"
-    xtick_names = get_xtick_names(24, df.columns)
-    cluster_and_plot_anomalies(df, 3, 10, 3,  df.shape[0]*0.03, title, xlab, ylab, xtick_names)
+    cluster_and_plot_anomalies(df, 4, 10, 3,  df.shape[0]*0.03, title, xlab, ylab)
+
 
 def return_main():
     # df = grabAllPointsInBuildingByType(27, '2017-12-20 00:00', '2017-12-21 00:00', 'ROOM TEMP')
