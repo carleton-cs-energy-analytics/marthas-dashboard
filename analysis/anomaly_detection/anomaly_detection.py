@@ -3,6 +3,7 @@ from sklearn import metrics
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import datetime
 from mpl_toolkits.mplot3d import Axes3D # Have to keep so that can use '3d' projection
 from math import ceil
 import numpy as np
@@ -207,6 +208,7 @@ def plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab
     :return: None
     """
     index = 0
+    times = pd.to_datetime(df.columns).to_pydatetime()
     for name, row in df.iterrows():
         cluster = clusterings[index]
         if anomalous[index]:
@@ -215,7 +217,7 @@ def plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab
         else:
             color = "black"
         plt.figure(cluster)
-        plt.plot(pd.to_datetime(df.columns).to_pydatetime(), row.tolist(), c=color)
+        plt.plot(times, row.tolist(), c=color)
         index += 1
 
     hours = mdates.HourLocator()
@@ -228,6 +230,7 @@ def plot_timeline(df, clusterings, cluster_centers, anomalous, title, xlab, ylab
         ax.xaxis.set_major_formatter(hourFormat)
         #plt.plot(cluster_centers[i], c="blue")
         #plt.ylim(-5,105)
+        plt.xlim(times[0], times[-1])
         plt.title(title + ": Cluster " + str(i))
         plt.ylabel(ylab)
         plt.xlabel(xlab)
