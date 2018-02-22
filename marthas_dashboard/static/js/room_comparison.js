@@ -30,6 +30,7 @@ function constructRoomInspectorURL(e){
 
     for (const key in data) {
         value = data[key];
+        console.log(value);
         inputs = inputs + addInputUrl(key, value);
     }
 

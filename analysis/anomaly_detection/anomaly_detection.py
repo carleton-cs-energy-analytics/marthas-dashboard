@@ -312,7 +312,7 @@ def get_xtick_names(num_xticks, possible_names):
 
 
 
-def main():
+def plot_main():
     #df = grabAllPointsInBuildingByType(27, '2017-12-20 00:00', '2017-12-21 00:00', 'ROOM TEMP')
     df = api.building_values_in_range_by_type(45, '2017-12-27 00:00', '2017-12-28 00:00', 4922)
     df = pivot_df(df)
@@ -325,6 +325,16 @@ def main():
     xtick_names = get_xtick_names(24, df.columns)
     cluster_and_plot_anomalies(df, 3, 10, 3,  df.shape[0]*0.03, title, xlab, ylab, xtick_names)
 
+def return_main():
+    # df = grabAllPointsInBuildingByType(27, '2017-12-20 00:00', '2017-12-21 00:00', 'ROOM TEMP')
+    #df = pivot_df(df)
+    start = date(2016,6,1)
+    end = date(2016,8,31)
+    df = grabAndPivotAllDaysInRangeForPoint(1652, start, end)
+    #cluster_and_plot_anomalies(df, 4, 10, 3,  df.shape[0]*0.03)
+    an_pt = return_anomalous_points(df, 4, 10, 3, df.shape[0]*0.03)
+    print(an_pt)
+
 if __name__ == '__main__':
     #plot_anomalies_all(4, 10)
-    main()
+    plot_main()

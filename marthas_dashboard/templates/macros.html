@@ -52,6 +52,11 @@
                     <option value="{{ time }}" {{ "selected" if data['timestamp']|e == time }}>{{ time }}</option>
                 {% endfor %}
             </select>
+            <div>
+                <label for="detect-anomalies">Detect Anomalies: </label>
+                <input id="detect-anomalies" name="detect-anomalies" type="checkbox" value="True" {{ "checked" if data['detect-anomalies']|e == "True" }}>
+
+            </div>
             <button class="form_submit">Submit</button>
         </form>
     </div>
@@ -66,6 +71,54 @@
 {% endmacro %}
 
 
+{% macro generate_tr(row, anomalous_pts) -%}
+
+    {# Check if a temp 1 RM is anomalous #}
+    {% set ns = namespace(anomalous=false) %}
+    {% for anomaly in anomalous_pts %}
+        {% if "RM" in anomaly and row['name_room'] in anomaly and not "RMT" in anomaly %}
+            {% set ns.anomalous=true %}
+
+        {% endif %}
+    {% endfor %}
+
+    {% if ns.anomalous == true %}
+        <td class="anomalouscell" headers="temp1">{{ row['temp1 (RM)'] }}</td>
+
+    {% else %}
+        <td class="dtcell" headers="temp1">{{ row['temp1 (RM)'] }}</td>
+    {% endif %}
+
+    {# Check if a temp 2 RMT is anomalous #}
+    {% set ns = namespace(anomalous=false) %}
+    {% for anomaly in anomalous_pts %}
+        {% if "RMT" in anomaly and row['name_room'] in anomaly %}
+            {% set ns.anomalous = true %}
+        {% endif %}
+    {% endfor %}
+    {% if ns.anomalous == true %}
+        <td class="anomalouscell" headers="temp1">{{ row['temp2 (RMT)'] }}</td>
+
+    {% else %}
+        <td class="dtcell" headers="temp1">{{ row['temp2 (RMT)'] }}</td>
+    {% endif %}
+
+    {# Check if valve is anomalous #}
+    {% set ns = namespace(anomalous=false) %}
+    {% for anomaly in anomalous_pts %}
+        {% if "RHV" in anomaly and row['name_room'] in anomaly %}
+            {% set ns.anomalous = true %}
+        {% endif %}
+    {% endfor %}
+    {% if ns.anomalous == true %}
+        <td class="anomalouscell" headers="temp1">{{ row['valve'] }}</td>
+
+    {% else %}
+        <td class="dtcell" headers="temp1">{{ row['valve'] }}</td>
+    {% endif %}
+
+{% endmacro %}
+
 {# Not currently in use! #}
 {% macro comparison(row) -%}
     <tr class="room-comparison-row">
@@ -76,3 +129,4 @@
         <td class="dtcell" headers="description">{{ row['description'] }}</td>
     </tr>
 {% endmacro %}
+
