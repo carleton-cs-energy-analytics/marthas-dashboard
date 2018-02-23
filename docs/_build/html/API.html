@@ -1,0 +1,144 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Routes: &#8212; marthas-dashboard 0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="routes">
+<span id="routes"></span><h1>Routes:<a class="headerlink" href="#routes" title="Permalink to this headline">¶</a></h1>
+<p>Base Url: http://energycomps.its.carleton.edu/api/index.php</p>
+<div class="section" id="buildings">
+<span id="buildings"></span><h2>/buildings<a class="headerlink" href="#buildings" title="Permalink to this headline">¶</a></h2>
+<p>Lists all buildings. Each building is composed of a building name and id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/buildings</p>
+<p>##/building/name
+Returns a building name and id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/building/LDC</p>
+</div>
+<div class="section" id="building-id-rooms">
+<span id="building-id-rooms"></span><h2>/building/id/rooms<a class="headerlink" href="#building-id-rooms" title="Permalink to this headline">¶</a></h2>
+<p>Lists all of a buildings rooms. Each room is composed of a room name and id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/building/3/rooms</p>
+</div>
+<div class="section" id="building-id-points">
+<span id="building-id-points"></span><h2>/building/id/points<a class="headerlink" href="#building-id-points" title="Permalink to this headline">¶</a></h2>
+<p>Lists all of a buildings points. Each point is composed of a description, id, name, point source id (lucid vs Siemens), point type id (ex. 13 is for temperature), and the room id containing the point.
+Example query: http://energycomps.its.carleton.edu/api/index.php/building/3/points</p>
+</div>
+<div class="section" id="building-id-points-point-type-id">
+<span id="building-id-points-point-type-id"></span><h2>/building/id/points/point_type_id<a class="headerlink" href="#building-id-points-point-type-id" title="Permalink to this headline">¶</a></h2>
+<p>Lists all of a buildings points that have a point type equal to point type id. Each point is composed of a description, id, name, point source id (lucid vs Siemens), and point type id (ex. 13 is for temperature), and the room id containing the point.
+Example query: http://energycomps.its.carleton.edu/api/index.php/building/3/points/13</p>
+</div>
+<div class="section" id="point-name">
+<span id="point-name"></span><h2>/point/name<a class="headerlink" href="#point-name" title="Permalink to this headline">¶</a></h2>
+<p>Lists all information including return type, units, factor, and point type name for a given point.
+Example query: http://energycomps.its.carleton.edu/api/index.php/point/BI.LAB.HW.TEMP</p>
+</div>
+<div class="section" id="values-point-point-id-start-end">
+<span id="values-point-point-id-start-end"></span><h2>/values/point/point_id/start/end<a class="headerlink" href="#values-point-point-id-start-end" title="Permalink to this headline">¶</a></h2>
+<p>Lists all of a point values between start and end. Each value is composed of a timestamp, a value, a return type, a factor, a point id, and a point type id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/values/point/528/2016-08-18/2017-08-19</p>
+</div>
+<div class="section" id="values-point-point-id-timestamp">
+<span id="values-point-point-id-timestamp"></span><h2>/values/point/point_id/timestamp<a class="headerlink" href="#values-point-point-id-timestamp" title="Permalink to this headline">¶</a></h2>
+<p>Returns a points value at timestamp. The value is composed of a timestamp, a value, a return type, a factor, a point id, and a point type id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/values/point/528/2016-08-18 00:45:00</p>
+</div>
+<div class="section" id="values-building-building-id-start-end">
+<span id="values-building-building-id-start-end"></span><h2>/values/building/building_id/start/end<a class="headerlink" href="#values-building-building-id-start-end" title="Permalink to this headline">¶</a></h2>
+<p>Lists all of a buildings values between start and end. Each value is composed of a timestamp, a value, a return type, a factor, a point id, and a point type id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/values/building/3/2016-08-18/2017-08-19</p>
+</div>
+<div class="section" id="values-building-building-id-timestamp">
+<span id="values-building-building-id-timestamp"></span><h2>/values/building/building_id/timestamp<a class="headerlink" href="#values-building-building-id-timestamp" title="Permalink to this headline">¶</a></h2>
+<p>Returns all of a buildings values at timestamp. Each value is composed of a timestamp, a value, a return type, a factor, a point id, and a point type id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/values/building/3/2016-08-18 00:45:00</p>
+</div>
+<div class="section" id="values-timestamp">
+<span id="values-timestamp"></span><h2>/values/timestamp<a class="headerlink" href="#values-timestamp" title="Permalink to this headline">¶</a></h2>
+<p>Returns all values at timestamp. Each value is composed of a timestamp, a value, a return type, a factor, a point id, and a point type id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/values/2016-08-18 00:45:00</p>
+</div>
+<div class="section" id="values-building-building-id-start-end-type-point-type">
+<span id="values-building-building-id-start-end-type-point-type"></span><h2>/values/building/building_id/start/end/type/point_type<a class="headerlink" href="#values-building-building-id-start-end-type-point-type" title="Permalink to this headline">¶</a></h2>
+<p>Lists all of a buildings values between start and end for all points that have a type of point type. Each value is composed of a timestamp, a value, a return type, a factor, a point id, and a point type id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/values/building/3/2016-08-18/2017-08-19/type/13</p>
+</div>
+<div class="section" id="values-building-building-id-start-end-source-source-id">
+<span id="values-building-building-id-start-end-source-source-id"></span><h2>/values/building/building_id/start/end/source/source_id<a class="headerlink" href="#values-building-building-id-start-end-source-source-id" title="Permalink to this headline">¶</a></h2>
+<p>Lists all of a buildings values between start and end for all points that have a source of source_id, eg 1 for lucid. Each value is composed of a timestamp, a value, a return type, a factor, a point id, and a point type id.
+Example query: http://energycomps.its.carleton.edu/api/index.php/values/building/3/2016-08-18/2017-08-19/source/1</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Dustin Michels.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/API.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

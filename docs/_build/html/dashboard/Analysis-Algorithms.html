@@ -1,0 +1,118 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Option 1: Association rules &#8212; marthas-dashboard 0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="option-1-association-rules">
+<span id="option-1-association-rules"></span><h1>Option 1: Association rules<a class="headerlink" href="#option-1-association-rules" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="input">
+<span id="input"></span><h2>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h2>
+<p>One data entry is a set of items. In the grocery store analogy, this might be {milk, bread, eggs}.</p>
+<ul class="simple">
+<li>Note that this is not the same as having a set number of items (or points in our case) and input their values, such as {1 carton, 2 loaves, 1 dozen}.</li>
+</ul>
+<p>Since we have points which can be set to different values, the easiest way for us to create this data structure is:</p>
+<ol class="simple">
+<li>Bin all continuous values</li>
+<li>Implement one hot encoding so that an “item” is a point at a set value (e.g. “VAV&gt;20” or “AC=ON”, not just “VAV” or “ON”)</li>
+</ol>
+</div>
+<div class="section" id="output">
+<span id="output"></span><h2>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h2>
+<p>Statements, or rules, of the form {X,Y,…} implies {Z,…} which suggest correlations between certain items, or in our case, point settings. (e.g. {“AC=ON”, “TEMP=COOL”} implies {“ENERGY&gt;2000”}). We do not get to decide which types of point settings go before or after the implies, so we would have to sort through the output for statements that are meaningful to us.</p>
+</div>
+<div class="section" id="typical-algorithm">
+<span id="typical-algorithm"></span><h2>Typical algorithm<a class="headerlink" href="#typical-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>From what I have seen and Wikipedia says, a typical algorithm will find <em>frequent itemsets</em> within the given data entries based on a minimum <em>support</em> threshold. It will then define interesting rules from those itemsets based on a minimum <em>confidence</em> threshold. Algorithms differ on how they iterate through itemsets and rules to test for confidence and support, since iterating through all subsets of a set can be a lengthy process.</p>
+</div>
+</div>
+<div class="section" id="option-2-decision-trees">
+<span id="option-2-decision-trees"></span><h1>Option 2: Decision trees<a class="headerlink" href="#option-2-decision-trees" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="input">
+<span id="id1"></span><h2>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h2>
+<p>A list of data entries (timestamps in our case) with features (equipment points in our case). A second list of the same data entries (timestamps) with a label (energy use, maintenance required, etc). Label must be categorical/discrete, which means binning for numerical data. Features can be anything theoretically (see note below), thresholds for splitting continuous data are decided by decision tree algorithm.</p>
+<ul class="simple">
+<li>NOTE: Python scikit learn implementation of decision trees requires <strong>continuous numerical data</strong>. Categorical data should use one hot encoding instead of numerical representation to avoid being confused with continuous data.</li>
+</ul>
+</div>
+<div class="section" id="output">
+<span id="id2"></span><h2>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h2>
+<p>A decision tree flowchart with internal nodes representing decision points and leaf nodes representing classification. Internal nodes are labeled with which feature was used to branch at that point, and possibly some measure of accuracy or gained information at that node.</p>
+</div>
+<div class="section" id="typical-algorithm">
+<span id="id3"></span><h2>Typical algorithm<a class="headerlink" href="#typical-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>A decision tree is created from training data by choosing branching points in order from the root of the tree down to the leaves. A branching point is decided by iterating over all possible features and splitting on that feature. Some measurement (algorithm dependent, examples are gini and entropy) is used to determine which feature will give the most information or accuracy by splitting the data at that point in the tree. Once some threshold of accuracy or max depth is reached, all remaining data are classified at leaf nodes and the tree is output. Multiple training and test datasets can be created to prevent overfitting the data. Since we have so many features (all of the equipment points) and only really care about what features are used to branch the first few levels, we will likely set a low max depth and not have to worry about overfitting.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Dustin Michels.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/dashboard/Analysis-Algorithms.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

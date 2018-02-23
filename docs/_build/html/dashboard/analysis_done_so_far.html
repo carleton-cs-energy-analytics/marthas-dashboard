@@ -1,0 +1,190 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Analysis Done So Far &#8212; marthas-dashboard 0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="analysis-done-so-far">
+<span id="analysis-done-so-far"></span><h1>Analysis Done So Far<a class="headerlink" href="#analysis-done-so-far" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="association-rules-orange-current-implementation">
+<span id="association-rules-orange-current-implementation"></span><h2>Association Rules– Orange (current implementation)<a class="headerlink" href="#association-rules-orange-current-implementation" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="https://github.com/biolab/orange3-associate/blob/master/orangecontrib/associate/fpgrowth.py">About Orange</a></p>
+<p>In <code class="docutils literal notranslate"><span class="pre">Association_Rules_Orange.py</span></code> we have our association rules algorithm, which uses the API to obtain a dataframe of points and pointvalues, converts that into an Orange Table, uses binning and one-hot-encoding in order to prep the data for the algorithms.  We then use Orange to get a frequent itemset which is a list of pointvalues (post binning and encoding) that are often found together.  This frequent itemset is then used to generate our association rules, which are lists of commonly seen occurrences, like if point1 in bin 1 and point2 in bin2 then point3 in bin3.</p>
+<div class="section" id="to-use-this-code">
+<span id="to-use-this-code"></span><h3>To use this code:<a class="headerlink" href="#to-use-this-code" title="Permalink to this headline">¶</a></h3>
+<p>From <a class="reference external" href="https://github.com/carleton-cs-energy-analytics/marthas-dashboard.git">marthas-dashboard</a>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install Orange3
+pip install orange3-associate
+python3 -m marthas_dashboard.analysis.Association_Rules_Orange.py
+</pre></div>
+</div>
+<p>To change the points, change the building id or the times given</p>
+</div>
+<div class="section" id="to-expand-this-code-for-other-types-of-our-data">
+<span id="to-expand-this-code-for-other-types-of-our-data"></span><h3>To expand this code for other types of our data:<a class="headerlink" href="#to-expand-this-code-for-other-types-of-our-data" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>SHOULD be able to follow along general guideline outlined below (using functions in the specified file)</li>
+<li>Just change the <code class="docutils literal notranslate"><span class="pre">getDFBuildingValuesInRange</span></code> to another api calling method of your choice (and be sure to clean/pivot the data)</li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">getDFBuildingValuesInRange</span><span class="p">(</span><span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="s1">&#39;2017-08-18 12:00&#39;</span><span class="p">,</span> <span class="s1">&#39;2017-08-18 20:00&#39;</span><span class="p">)</span>
+<span class="n">orange_table</span> <span class="o">=</span> <span class="n">df2table</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="n">data_table</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">mapping</span> <span class="o">=</span> <span class="n">formatTable</span><span class="p">(</span><span class="n">orange_table</span><span class="p">)</span>
+<span class="n">class_items</span> <span class="o">=</span> <span class="n">getClassItems</span><span class="p">(</span><span class="n">data_table</span><span class="p">,</span> <span class="n">mapping</span><span class="p">)</span>
+
+<span class="n">itemsets</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">frequent_itemsets</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">.</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">rules</span> <span class="o">=</span> <span class="n">getAssociationRules</span><span class="p">(</span><span class="n">itemsets</span><span class="p">,</span> <span class="n">class_items</span><span class="p">)</span>
+
+<span class="n">pretty_print_rules</span><span class="p">(</span><span class="n">data_table</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">rules</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="parameters">
+<span id="parameters"></span><h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h3>
+<p>…..TODO</p>
+</div>
+<div class="section" id="using-the-orange3-widget">
+<span id="using-the-orange3-widget"></span><h3>Using the Orange3 Widget<a class="headerlink" href="#using-the-orange3-widget" title="Permalink to this headline">¶</a></h3>
+<p>This is a much faster way of running association rules.  The only issue is that we will only be able to look at 100 rules at a time, but we can use filtering of both input and output to look at a subset of the rules that might interest us</p>
+</div>
+</div>
+<div class="section" id="decision-trees">
+<span id="decision-trees"></span><h2>Decision Trees<a class="headerlink" href="#decision-trees" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="python-scikit-learn-decisiontreeclassifier">
+<span id="python-scikit-learn-decisiontreeclassifier"></span><h3>Python: scikit-learn DecisionTreeClassifier<a class="headerlink" href="#python-scikit-learn-decisiontreeclassifier" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>must use continuous input features and categorical/discrete classes</li>
+<li>I interchangeably use the terms “classes” and “labels” (seen in code below)</li>
+</ul>
+<div class="section" id="example-code">
+<span id="example-code"></span><h4>Example code:<a class="headerlink" href="#example-code" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># create classifier with input parameters</span>
+<span class="n">clf_gini</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">criterion</span> <span class="o">=</span> <span class="s2">&quot;gini&quot;</span><span class="p">,</span> <span class="n">random_state</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+                               <span class="n">max_depth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">min_samples_leaf</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="c1"># train tree on data</span>
+<span class="n">clf_gini</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+<span class="c1"># create picture of tree, important parameters are: feature_names, class_names</span>
+<span class="n">dot_data</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">export_graphviz</span><span class="p">(</span><span class="n">clf_gini</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                         <span class="n">feature_names</span><span class="o">=</span><span class="n">features</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                         <span class="n">class_names</span><span class="o">=</span><span class="n">class_names</span><span class="p">,</span>
+                         <span class="n">filled</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">rounded</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                         <span class="n">special_characters</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="c1"># graph tree</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">graphviz</span><span class="o">.</span><span class="n">Source</span><span class="p">(</span><span class="n">dot_data</span><span class="p">)</span>
+
+<span class="c1"># write graphed tree to file</span>
+<span class="n">graph</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s2">&quot;test_tree&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="input-parameters-of-interest">
+<span id="input-parameters-of-interest"></span><h4>Input parameters of interest<a class="headerlink" href="#input-parameters-of-interest" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="classification-parameters">
+<span id="classification-parameters"></span><h5>Classification parameters<a class="headerlink" href="#classification-parameters" title="Permalink to this headline">¶</a></h5>
+<p>See <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html#sklearn.tree.DecisionTreeClassifier">sklearn documentation page</a></p>
+<ul class="simple">
+<li><strong>criterion:</strong> way of choosing branching nodes. gini or entropy</li>
+<li><strong>random_state:</strong> seed for RNG</li>
+<li><strong>max_depth, min_samples_leaf, etc:</strong> the min/max parameters are mostly used to decide when to stop branching the tree or speed up tree creation (at the cost of accuracy)</li>
+</ul>
+</div>
+<div class="section" id="graphing-parameters">
+<span id="graphing-parameters"></span><h5>Graphing parameters<a class="headerlink" href="#graphing-parameters" title="Permalink to this headline">¶</a></h5>
+<ul class="simple">
+<li><strong>feature_names:</strong> list of column names of the dataframe of feature variables (in our case, point names)</li>
+<li><strong>class_names:</strong> ordered list of possible classifications. Such as [“(92-94]”,”(94-97]”,”(97-100]”] if the classification is a binned continuous value. Could also be [“low”,”medium”,”high”]. Has to match the number of unique values in the list of labels, but not the values themselves. So you could have the classification values fall into the bins (92-94],(94-97], and (97-100], then use the class_names=[“low”,”medium”,”high”]. Just make sure they are ordered so that they line up alphabetically/numerically ascending.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="r-rpart">
+<span id="r-rpart"></span><h3>R: rpart<a class="headerlink" href="#r-rpart" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>make sure method=”class” parameter is included in rpart call to create classification tree rather than regression tree</li>
+<li>impossibly slow with continuous data - must bin everything</li>
+<li>can include categorical data (enumerated data in our DB)</li>
+<li>must specify by name which columns are used as features (might be some way around this, I didn’t pursue)</li>
+</ul>
+<div class="section" id="example-code">
+<span id="id1"></span><h4>Example code:<a class="headerlink" href="#example-code" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="c1"># classify the &quot;EV.RMG07.V&quot; col of the &quot;binned_data&quot; dataframe based on the values of the &quot;EV.RMG06.V&quot; col</span>
+test_tree <span class="o">=</span> rpart<span class="p">(</span>binned_data<span class="o">$</span>EV.RMG07.V <span class="o">~</span> binned_data<span class="o">$</span>EV.RMG06.V<span class="p">,</span> method <span class="o">=</span> <span class="s">&quot;class&quot;</span><span class="p">,</span> data<span class="o">=</span>binned_data<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="getting_started.html" title="previous chapter">Getting Started</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Dustin Michels.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/dashboard/analysis_done_so_far.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

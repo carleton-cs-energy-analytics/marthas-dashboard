@@ -1,0 +1,112 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Use git log to see what’s going on &#8212; marthas-dashboard 0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="use-git-log-to-see-what-s-going-on">
+<span id="use-git-log-to-see-what-s-going-on"></span><h1>Use <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">log</span></code> to see what’s going on<a class="headerlink" href="#use-git-log-to-see-what-s-going-on" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">log</span></code> shows a record of commits. You can add flags to make this a very insightful look at the various branches people are working on.</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">--oneline</span></code> compresses commit logs to oneline</li>
+<li><code class="docutils literal notranslate"><span class="pre">--graph</span></code> visually shows various branches being created then merged back</li>
+<li><code class="docutils literal notranslate"><span class="pre">--all</span></code> shows all commits, even on branches that don’t interact with yours</li>
+<li><code class="docutils literal notranslate"><span class="pre">--date=relative</span></code> makes the dates human-friendly (ie, “one week ago” and “just now”)</li>
+</ul>
+<p>So: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">log</span> <span class="pre">--oneline</span> <span class="pre">--graph</span> <span class="pre">--all</span> <span class="pre">--date=relative</span></code> will show something like this:</p>
+<p><img alt="git_log_screenshot" src="https://user-images.githubusercontent.com/16504363/32153624-bce46fea-bcf9-11e7-9215-39a07c8cec27.png" /></p>
+<p>Here, you can see:</p>
+<ul class="simple">
+<li>Each line represents a commit</li>
+<li>The alphanumeric string in yellow is a shortened version of the hash that uniquely identifies that commit.</li>
+<li>Commit <code class="docutils literal notranslate"><span class="pre">65bb805</span></code> is labeled as <code class="docutils literal notranslate"><span class="pre">origin/master</span></code>, because <code class="docutils literal notranslate"><span class="pre">origin</span></code>’s (aka GitHub’s) version of the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch  is pointing there. It is also labeled as <code class="docutils literal notranslate"><span class="pre">HEAD</span></code> because my own current, local ‘view’ of the code matches this commit. It is also labeled as <code class="docutils literal notranslate"><span class="pre">origin/HEAD</span></code> because GitHub’s current view of the code (the one that shows up on the homepage of this project) matches this commit.</li>
+<li>If you look at the commit labeled <code class="docutils literal notranslate"><span class="pre">origin/db_structure</span></code> you can follow that green line down to see that Carolyn probably created this branch off of the commit titled <code class="docutils literal notranslate"><span class="pre">fb13447</span></code> (commit message: “FAIL”). Before she could push, she pulled the more recent of version of the code (follow the red branch back to <code class="docutils literal notranslate"><span class="pre">65bb805</span></code>, where my <code class="docutils literal notranslate"><span class="pre">dusty-refactor</span></code> was merged.)</li>
+</ul>
+</div>
+<div class="section" id="delete-local-branches-no-longer-on-local">
+<span id="delete-local-branches-no-longer-on-local"></span><h1>Delete local branches no longer on local<a class="headerlink" href="#delete-local-branches-no-longer-on-local" title="Permalink to this headline">¶</a></h1>
+<p>To delete local references to no longer existing remote branches:</p>
+<ol class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">remote</span> <span class="pre">prune</span> <span class="pre">origin</span></code></li>
+</ol>
+<p>To delete local branches now merged into master:</p>
+<ol class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">master</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">branch</span> <span class="pre">--merged</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">-v</span> <span class="pre">'^[</span> <span class="pre">*]*master$'</span> <span class="pre">|</span> <span class="pre">xargs</span> <span class="pre">git</span> <span class="pre">branch</span> <span class="pre">-d</span></code></li>
+</ol>
+<p>To delete local branches whose remote counterparts have been removed:</p>
+<ol class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">branch</span> <span class="pre">-vv</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">'origin/.*:</span> <span class="pre">gone]'</span> <span class="pre">|</span> <span class="pre">awk</span> <span class="pre">'{print</span> <span class="pre">$1}'</span> <span class="pre">|</span> <span class="pre">xargs</span> <span class="pre">git</span> <span class="pre">branch</span> <span class="pre">-d</span></code></li>
+</ol>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Dustin Michels.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/miscellaneous/Useful-Git-Stuff.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
