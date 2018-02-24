@@ -25,7 +25,7 @@
                 {% for idx, row in dataframe.iterrows() %}
                     <tr class="room-comparison-row">
                         <th scope="row" class="dtcell" headers="room">{{ row['name_room'] }}</th>
-                        <td class="dtcell" headers="temp">{{ row['temp1 (RM)'] }}</td>
+                        <td class="dtcell" headers="temp">{{ row['room temp'] }}</td>
                         <td class="dtcell" headers="valve">{{ row['valve'] }}</td>
                     </tr>
                 {% endfor %}
