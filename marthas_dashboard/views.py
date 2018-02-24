@@ -19,11 +19,12 @@ from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
 from . import tools
 import pandas as pd
-import datetime
 from werkzeug.contrib.cache import SimpleCache
+import pprint
 
 api = API()
 cache = SimpleCache()
+pp = pprint.PrettyPrinter(indent=4)
 
 
 @app.route('/')
@@ -43,10 +44,12 @@ def compare():
     if len(searches) < 1:
         searches[0] = {}
         # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '4'
+        searches[0]['building'] = '6'
         searches[0]['point'] = '511'
         searches[0]['from'] = '2017-08-18'
         searches[0]['to'] = '2017-08-30'
+
+    pp.pprint(searches)
 
     # do our searches and get the components we need to inject there
     search_results = do_searches(searches)
@@ -61,7 +64,7 @@ def compare():
     json_res = rooms_points_json(rooms_points)
 
     html = render_template(
-        'chart.html',
+        'point_compare.html',
         buildings=building_names,
         scripts=json_res,
         result_components=results_components,
@@ -76,11 +79,16 @@ def alerts():
 
     searches, keywords = create_search_bins(request.args)
 
+    # Made an attempt at not hard coding values using this style
+    building_name_by_id = api.buildings()
+    building_id_by_name = {v: k for k, v in building_name_by_id.items()}
+    building_names_ = list(building_id_by_name.keys())
+
     if len(searches) < 1:
         searches[0] = {}
         # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '4'
-        searches[0]['point'] = '511'
+        searches[0]['building'] = building_id_by_name['Gould Library']
+        searches[0]['point'] = api.building_points('16').loc[0, 'id']
         searches[0]['from'] = '2017-08-18'
         searches[0]['to'] = '2017-08-30'
 
@@ -161,7 +169,9 @@ def room_comparison():
             size_threshold = pivoted_df.shape[0] * 0.03
 
             # See the function analysis.anomaly_detection.anomaly_detection.py for details on what these values mean.
-            anomalous_pts.append(return_anomalous_points(pivoted_df, n_clusters=4, n_init=10, std_threshold=3, size_threshold=size_threshold))
+            anomalous_pts.append(return_anomalous_points(
+                pivoted_df, n_clusters=4, n_init=10,
+                std_threshold=3, size_threshold=size_threshold))
 
         concat_arrays = []
         for array in anomalous_pts:
@@ -201,12 +211,17 @@ def room_inspector():
 def heatmap():
     building_names = api.buildings()
 
+    # Made an attempt at not hard coding values using this style
+    building_name_by_id = api.buildings()
+    building_id_by_name = {v: k for k, v in building_name_by_id.items()}
+    building_names_ = list(building_id_by_name.keys())
+
     searches, keywords = create_search_bins(request.args)
     if len(searches) < 1:
         searches[0] = {}
         # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '4'
-        searches[0]['point'] = '511'
+        searches[0]['building'] = building_id_by_name['Gould Library']
+        searches[0]['point'] = api.building_points('16').loc[0, 'id']
         searches[0]['from'] = '2017-08-18'
         searches[0]['to'] = '2017-08-30'
     searches = [searches[0]]
@@ -222,7 +237,7 @@ def heatmap():
     json_res = rooms_points_json(rooms_points)
 
     html = render_template(
-        'chart.html',
+        'heatmap.html',
         buildings=building_names,
         scripts=json_res,
         result_components=results_components,
@@ -247,9 +262,11 @@ def generate_heatmap(data, keywords):
         if keywords['color'] in colors:
             colorkey = keywords['color']
     mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min(), high=data['pointvalue'].max())
+
     if data['pointvalue'].min() == data['pointvalue'].max():
-        mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min() - 1,
-                                   high=data['pointvalue'].max() + 1)
+        mapper = LinearColorMapper(
+            palette=colors[colorkey], low=data['pointvalue'].min() - 1,
+            high=data['pointvalue'].max() + 1)
 
     source = ColumnDataSource(data)
     TOOLS = "hover,save,pan,box_zoom,reset,wheel_zoom"
@@ -257,7 +274,7 @@ def generate_heatmap(data, keywords):
         title=data['pointname'][0],
         y_range=list(reversed(data['date'].unique())), x_range=list(data['time'].unique()),
         x_axis_location="above", plot_width=1000, plot_height=700,
-        tools=TOOLS, toolbar_location='below')
+        tools=TOOLS, toolbar_location='below', sizing_mode='scale_width')
     p.grid.grid_line_color = None
     p.axis.axis_line_color = None
     p.axis.major_tick_line_color = None
@@ -276,10 +293,11 @@ def generate_heatmap(data, keywords):
         ('pointvalue', '@pointvalue ' + data['units'][0]),
     ]
 
-    color_bar = ColorBar(color_mapper=mapper,
-                         ticker=AdaptiveTicker(),
-                         formatter=PrintfTickFormatter(format="%d " + data['units'][0]),
-                         label_standoff=15, location=(0, 0))
+    color_bar = ColorBar(
+        color_mapper=mapper, ticker=AdaptiveTicker(),
+        formatter=PrintfTickFormatter(format="%d " + data['units'][0]),
+        label_standoff=15, location=(0, 0))
+
     p.add_layout(color_bar, 'right')
     script, plot = components(p)
     color_picker = "Colors: <select class='color-picker' name='color'>"
@@ -296,20 +314,20 @@ def generate_heatmap(data, keywords):
 def generate_line_graph(data, keywords):
     x = data['pointtimestamp']
     y = data['pointvalue']
-    data['pointtime'] = data['date'] +" "+ data['time']
+    data['pointtime'] = data['date'] + " " + data['time']
 
     # Make figure
     hover = HoverTool(
-        tooltips=[('Date', '@pointtime'), ('Value', '$y')],
-        mode='vline',
-    )
-    tools = ['pan', 'box_zoom', 'wheel_zoom', 'save', 'reset', 'lasso_select', hover]
+        tooltips=[('Date', '@pointtime'), ('Value', '$y')], mode='vline')
+    plot_tools = ['pan', 'box_zoom', 'wheel_zoom', 'save', 'reset', 'lasso_select', hover]
 
-    fig = figure(plot_width=600, plot_height=600, x_axis_type="datetime", tools=tools)
+    fig = figure(
+        plot_width=600, plot_height=600, x_axis_type="datetime",
+        tools=plot_tools)
     source = ColumnDataSource(data)
     labels = LabelSet(x="pointvale", y="pointtimestamp", text="pointtime", y_offset=8,
-                  text_font_size="8pt", text_color="#555555",
-                  source=source, text_align='center')
+                      text_font_size="8pt", text_color="#555555",
+                      source=source, text_align='center')
     fig.line('pointtimestamp', 'pointvalue', source=source, color="navy", alpha=0.5)
     fig.toolbar.logo = None
     return components(fig)  # Embed figure in template
@@ -386,13 +404,13 @@ def get_rooms_points(buildings):
     ie {4:{'rooms':{5}}}"""
     result = {}
     for building_id, name in buildings.items():
-        building_data = cache.get('building_data_'+str(building_id))
+        building_data = cache.get('building_data_' + str(building_id))
         if building_data is None:
             building_data = {
                 'rooms': map_rooms(api.building_rooms(building_id)),
                 'points': map_points(api.building_points(building_id))
             }
-            cache.set('building_data_'+str(building_id), building_data)
+            cache.set('building_data_' + str(building_id), building_data)
         result[building_id] = building_data
     return result
 

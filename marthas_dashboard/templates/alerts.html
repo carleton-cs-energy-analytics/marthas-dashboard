@@ -1,26 +1,23 @@
-{% extends "base.html" %}
-{% import 'macros.html' as macros %}
-
-{% block pl_script %}
-    {% for item in result_components %}
-        {{ item.script|indent(4)|safe }}
-    {% endfor %}
-    {{ scripts|safe }}
-{% endblock %}
+{% extends "chart.html" %}
+{% block alerts_active %}active{% endblock %}
+{% block page_title %}Alerts{% endblock %}
 
 {% block content %}
-    <div class="row chart-container">
+    <div class="row">
         {% for item in result_components %}
-            <div class="seven columns">
+
+            <div class="col-md-8">
                 {{ macros.data_filter(item, buildings, 0, False, False, False) }}
             </div>
-            <div class="five columns">
+
+            <div class="col-md-4">
+
                 <div class="alerts-container">
                     {% if item.alerts|length > 0 %}
                         <b>Point Name:</b> {{ item.alerts[0]['name'] }}<br/>
                         <b>Average:</b> {{ item.alerts[0].avg }}<br/>
                         <b>Standard Deviation:</b> {{ item.alerts[0]['std'] }}
-                        <table class="alerts sortable">
+                        <table class="table table-dark table-hover sortable">
                             <thead>
                             <tr>
                                 <th class="dtcell">Date/Time</th>
@@ -30,7 +27,6 @@
                             <tbody>
                             {% for row in item.alerts %}
                                 {{ macros.alert(row) }}
-
                             {% endfor %}
                             </tbody>
                         </table>
@@ -39,8 +35,6 @@
                     {% endif %}
                 </div>
             </div>
-
         {% endfor %}
     </div>
-
 {% endblock %}
