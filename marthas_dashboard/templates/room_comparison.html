@@ -14,20 +14,16 @@
                         <thead>
                         <tr>
                             <th class="roomcell">Room</th>
-                            <th>Temp 1 (RM)</th>
-                            <th>Temp 2 (RMT)</th>
-                            <th>Valve</th>
+                            <th>Room Temp (deg F)</th>
+                            <th>Valve Percent (%)</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for idx, row in dataframe.iterrows() %}
                             <tr class="room-comparison-row">
-
-
                                 <td class="dtcell" headers="room">{{ row['name_room'] }}</td>
                                 {# This macro creates the rest of the table cells based on the list of anomalies #}
                                 {{ macros.generate_tr(row, anomalous_pts) }}
-
                             </tr>
                         {% endfor %}
                         </tbody>

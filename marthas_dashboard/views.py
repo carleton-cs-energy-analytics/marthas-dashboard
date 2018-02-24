@@ -129,7 +129,10 @@ def room_comparison():
 
     # Just set some defaults if we didn't have any searches (I.e. this is the first loading)
     if len(searches) < 1:
-        searches = {'building': '4', 'date': '2017-08-18', 'timestamp': '00:00:00'}
+        searches = {
+            'building': api.building('Evans Hall').id,
+            'date': '2017-12-26',
+            'timestamp': '00:00:00'}
 
     # do our searches and get the dataframe back
     search_results = tools.get_room_comparison_results(searches)
@@ -180,6 +183,9 @@ def room_comparison():
 @app.route('/room-inspector')
 def room_inspector():
     searches = request.args
+
+    print(searches)
+
     building_name = api.buildings()[int(searches['building'])]
     search_results = tools.get_room_inspector_results(searches)
     script, div = tools.make_all_room_inspector_graphs(search_results)

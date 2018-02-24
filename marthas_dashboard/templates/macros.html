@@ -83,10 +83,10 @@
     {% endfor %}
 
     {% if ns.anomalous == true %}
-        <td class="anomalouscell" headers="temp1">{{ row['temp1 (RM)'] }}</td>
+        <td class="anomalouscell" headers="room temp">{{ row['room temp'] }}</td>
 
     {% else %}
-        <td class="dtcell" headers="temp1">{{ row['temp1 (RM)'] }}</td>
+        <td class="dtcell" headers="room temp">{{ row['room temp'] }}</td>
     {% endif %}
 
     {# Check if a temp 2 RMT is anomalous #}
@@ -96,12 +96,12 @@
             {% set ns.anomalous = true %}
         {% endif %}
     {% endfor %}
-    {% if ns.anomalous == true %}
-        <td class="anomalouscell" headers="temp1">{{ row['temp2 (RMT)'] }}</td>
-
-    {% else %}
-        <td class="dtcell" headers="temp1">{{ row['temp2 (RMT)'] }}</td>
-    {% endif %}
+{#    {% if ns.anomalous == true %}#}
+{#        <td class="anomalouscell" headers="temp1">{{ row['temp2 (RMT)'] }}</td>#}
+{##}
+{#    {% else %}#}
+{#        <td class="dtcell" headers="temp1">{{ row['temp2 (RMT)'] }}</td>#}
+{#    {% endif %}#}
 
     {# Check if valve is anomalous #}
     {% set ns = namespace(anomalous=false) %}
@@ -111,10 +111,10 @@
         {% endif %}
     {% endfor %}
     {% if ns.anomalous == true %}
-        <td class="anomalouscell" headers="temp1">{{ row['valve'] }}</td>
+        <td class="anomalouscell" headers="valve">{{ row['valve'] }}</td>
 
     {% else %}
-        <td class="dtcell" headers="temp1">{{ row['valve'] }}</td>
+        <td class="dtcell" headers="valve">{{ row['valve'] }}</td>
     {% endif %}
 
 {% endmacro %}

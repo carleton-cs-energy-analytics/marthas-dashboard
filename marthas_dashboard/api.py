@@ -131,7 +131,10 @@ class API:
         try:
             df = pd.read_json(r.text)
         except ValueError:
-            df = pd.read_json(r.text, typ='series')
+            try:
+                df = pd.read_json(r.text, typ='series')
+            except ValueError:
+                return "Error! Search too large?"
 
         for col in self.datecolumns:
             if col in df:
