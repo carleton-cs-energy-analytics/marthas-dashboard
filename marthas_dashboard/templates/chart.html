@@ -1,7 +1,5 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 {% import 'macros.html' as macros %}
-
-{% block content %}{% endblock %}
 
 {% block pl_script %}
     {% for item in result_components %}
@@ -11,4 +9,17 @@
         {% endif %}
     {% endfor %}
     {{ scripts|safe }}
+{% endblock %}
+
+{% block content %}
+    <div class="row chart-container">
+        {% for item in result_components %}
+            {{ macros.data_filter(item, buildings, loop.index0, allow_comparisons, False, loop.length <= 1 and allow_comparisons) }}
+            {% if loop.length <= 1 and allow_comparisons %}
+                {# add a second instance of this item that we can hide and show when we add a comparison #}
+                {{ macros.data_filter(item, buildings, loop.index0 + 1, True, True, False) }}
+            {% endif %}
+
+        {% endfor %}
+    </div>
 {% endblock %}

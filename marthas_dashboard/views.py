@@ -1,7 +1,11 @@
 from marthas_dashboard import app
 from analysis.anomaly_detection.anomaly_detection import return_anomalous_points, pivot_df
-from flask import (request, redirect, url_for, render_template)
+from flask import (request, redirect, url_for, render_template, jsonify)
 import json
+import math
+import pandas as pd
+from werkzeug.contrib.cache import SimpleCache
+import pprint
 from bokeh.embed import components
 from bokeh.util.string import encode_utf8
 from bokeh.plotting import figure
@@ -18,9 +22,7 @@ from .api import API
 from .alerts import generate_alerts
 from .room_comparison import generate_15_min_timestamps
 from . import tools
-import pandas as pd
-from werkzeug.contrib.cache import SimpleCache
-import pprint
+
 
 api = API()
 cache = SimpleCache()
@@ -115,13 +117,15 @@ def alerts():
 
 
 def filter_df(df, list_of_pointids):
+    pp.pprint(list_of_pointids)
     filtered_dfs = []
     for point_id in list_of_pointids:
-        new_filtered_df = df.query("pointid == {}".format(point_id))
-        filtered_dfs.append(new_filtered_df)
+
+        if not math.isnan(point_id):
+            new_filtered_df = df.query("pointid == {}".format(point_id))
+            filtered_dfs.append(new_filtered_df)
 
     # Now merge them all together for passing to the anomaly detector.
-
     filtered_df = pd.concat(filtered_dfs)
 
     return filtered_df
@@ -155,10 +159,12 @@ def room_comparison():
 
         # TODO: Here we filter the result of the ONE call based on "temp1, temp 2, and valve
         # based on Dustin's new columns
+
+        pp.pprint(search_results)
+
         point_ids_for_valve = search_results["pointid_valve"].tolist()
-        point_ids_for_tmp1 = search_results["pointid_temp1 (RM)"].tolist()
-        point_ids_for_tmp2 = search_results["pointid_temp2 (RMT)"].tolist()
-        point_ids = [point_ids_for_valve, point_ids_for_tmp1, point_ids_for_tmp2]
+        point_ids_for_tmp = search_results["pointid_room temp"].tolist()
+        point_ids = [point_ids_for_valve, point_ids_for_tmp]
 
         for point_id_list in point_ids:
             filtered_df = filter_df(df, point_id_list)
@@ -188,6 +194,14 @@ def room_comparison():
         timestamps=times,
     )
     return encode_utf8(html)
+
+
+@app.route('/_add_numbers')
+def add_numbers():
+    print("in here!!")
+    a = request.args.get('a', 0, type=int)
+    b = request.args.get('b', 0, type=int)
+    return jsonify(result=a + b)
 
 
 @app.route('/room-inspector')

@@ -3,26 +3,45 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Martha's Dashboard</title>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/skeleton.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
     <!-- Bokeh -->
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.css">
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.css">
     <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.11.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" type="text/css" href="/static/css/dashboard.css">
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.11.min.js"></script>
+    {% block pl_script %}{% endblock %}
+
     <!-- Icons -->
     <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 
-    <title>Martha's Dashboard</title>
-</head>
-<body>
+    {#    <!-- JQuery -->#}
+    {#    <script type=text/javascript src="{{ url_for('static', filename='js/jquery-3.3.1.min.js') }}"></script>#}
+    {##}
+    {#    <!-- Custom JS -->#}
+    {#    <link rel="stylesheet" type="text/javascript" href="{{ url_for('static', filename='js/script.js') }}">#}
+    {##}
+    {#    <script type=text/javascript>#}
+    {#      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }}#}
+    {#    </script>#}
 
-{#<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">#}
-{#    <a class="navbar-brand mr-0" href="#">Martha's Dashboard</a>#}
-{#</nav>#}
+    <!-- Load css/js from files (Backup) -->
+    {#    <link rel="stylesheet" type="text/javascript" href="{{ url_for('static', filename='js/bootstrap.min.js') }}">#}
+    {#    <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='css/bootstrap.min.css') }}>#}
+</head>
+
+<body>
 
 <header class="bg-dark text-light sticky-top p-0">
     <div class="container-fluid text-center">
@@ -80,6 +99,7 @@
         </nav>
 
         <main role="main" class="col-md-10 ml-sm-auto pt-3 px-4">
+            <!-- Main content of web app -->
             {% block content %}{% endblock %}
         </main>
     </div>
@@ -88,8 +108,9 @@
 
 <!-- Load some JavaScript -->
 <!-- jQuery, Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+<script
+        src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
@@ -97,16 +118,19 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
-<!-- Bokeh -->
-<script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.js"></script>
-<script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.js"></script>
-<script src="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.11.min.js"></script>
-<!-- May have to add more scripts for Bokeh plots -->
-{% block pl_script %}{% endblock %}
 
-<script>
-    feather.replace()
-</script>
+{#<script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.14.min.js"></script>#}
+{#<script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.14.min.js"></script>#}
+{#<script src="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.14.min.js"></script>#}
+{##}
+{#{% block pl_script %}{% endblock %}#}
+
+<!-- Feather (for icons) -->
+<script>feather.replace()</script>
+
+<script type="text/javascript" src=" {{ url_for('static', filename='js/comparison.js') }}"></script>
+<script type="text/javascript" src=" {{ url_for('static', filename='js/sorttable.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/room_comparison.js') }}"></script>
 
 </body>
 </html>

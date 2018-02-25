@@ -7,22 +7,22 @@
 div.original {
     float: left;
 }
-body {
-    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-}
+/*body {*/
+    /*font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;*/
+/*}*/
 
-h1, h2, p {
-    font-family: "Arial Black", Gadget, sans-serif;
-}
+/*h1, h2, p {*/
+    /*font-family: "Arial Black", Gadget, sans-serif;*/
+/*}*/
 
-h1 a:hover {
-    color: #4691A4;
-}
+/*h1 a:hover {*/
+    /*color: #4691A4;*/
+/*}*/
 
-h1 a {
-    color: black;
-    text-decoration: overline;
-}
+/*h1 a {*/
+    /*color: black;*/
+    /*text-decoration: overline;*/
+/*}*/
 
 .params-container {
     border-radius: 5px;
@@ -79,22 +79,22 @@ th{
     opacity: 0.6;
 
 }
-.sorttable_sorted{
+/*.sorttable_sorted{*/
 
-}
-.main-content{
-    margin-top: 1em;
-}
-body{
-    margin: 0px;
-}
-.sidebar{
-    width:inherit;
-    position: fixed;
-    height: 100vh;
-    border-right: 2px solid black;
-    background-color: #c6c6c6;
-}
+/*}*/
+/*.main-content{*/
+    /*margin-top: 1em;*/
+/*}*/
+/*body{*/
+    /*margin: 0px;*/
+/*}*/
+/*.sidebar{*/
+    /*width:inherit;*/
+    /*position: fixed;*/
+    /*height: 100vh;*/
+    /*border-right: 2px solid black;*/
+    /*background-color: #c6c6c6;*/
+/*}*/
 
 /*label {*/
   /*display: block;*/

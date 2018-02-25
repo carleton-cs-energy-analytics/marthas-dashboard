@@ -1,13 +1,3 @@
 {% extends "chart.html" %}
 {% block heatmap_active %}active{% endblock %}
 {% block page_title %}Heatmap{% endblock %}
-
-{% block content %}
-    <div class="row">
-        {% for item in result_components %}
-            <div class="col-md">
-                {{ macros.data_filter(item, buildings, loop.index0, allow_comparisons, False, loop.length <= 1 and allow_comparisons) }}
-            </div>
-        {% endfor %}
-    </div>
-{% endblock %}
