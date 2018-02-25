@@ -196,16 +196,9 @@ def room_comparison():
     return encode_utf8(html)
 
 
-@app.route('/_add_numbers')
-def add_numbers():
-    print("in here!!")
-    a = request.args.get('a', 0, type=int)
-    b = request.args.get('b', 0, type=int)
-    return jsonify(result=a + b)
-
-
 @app.route('/room-inspector')
 def room_inspector():
+    print("in room inspector!!")
     searches = request.args
 
     print(searches)
