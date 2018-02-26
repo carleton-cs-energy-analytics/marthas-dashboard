@@ -1,101 +1,104 @@
 {% macro data_filter(data, buildings, i, allow_comparisons = True, hide = False, show_comparison_button = False ) -%}
-    <div class="result-{{ i }} {% if hide %} hidden {% endif %} {% if allow_comparisons %} one-half{% endif %} column comparison">
-        <div class="params-container">
-            <span class="close-comparison {% if i < 1 %} hidden {% endif %}right">X</span>
-            <form name="{{ i }}" class="filter_data" method='GET'>
-                <label>Building:</label>
-                <select class="building_select" name="{{ i }}_building">
-                    {% for id, name in buildings.items() %}
-                        <option {{ "selected" if data.building|int == id|int }} value="{{ id }}">{{ name }}</option>
-                    {% endfor %}
-                </select>
-                {% if  allow_comparisons %}
-                    <br/>
-                {% endif %}
-                <label>Point name:</label>
-                <select class="point_selector" name="{{ i }}_point">
-                    {% for id,name in data.point_names.items() %}
-                        <option {{ "selected" if data.point|int == id|int }} value="{{ id }}">{{ name }}</option>
-                    {% endfor %}
-                </select>
-                <br/>
-                <label>From:</label>
-                <input type="date" name="{{ i }}_from" value="{{ data.from }}">
-                <label>To:</label>
-                <input type="date" name="{{ i }}_to" value="{{ data.to }}"><br/>
-                <button class="form_submit">Submit</button>
-                <button type="button"
-                        class="add-comparison {% if not show_comparison_button %} hidden {% endif %} right">+ Add
-                    Comparison
-                </button>
-            </form>
-        </div>
-        {{ data.plot |indent(4)|safe }}
-    </div>
+<div class="result-{{ i }} {% if hide %} hidden {% endif %} {% if allow_comparisons %} one-half{% endif %} column comparison">
+  <div class="params-container">
+    <span class="close-comparison {% if i < 1 %} hidden {% endif %}right">X</span>
+    <form name="{{ i }}" class="filter_data" method='GET'>
+      <label>Building:</label>
+      <select class="building_select" name="{{ i }}_building">
+        {% for id, name in buildings.items() %}
+        <option {{ "selected" if data.building|int == id|int }} value="{{ id }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+      {% if  allow_comparisons %}
+      <br/>
+      {% endif %}
+      <label>Point name:</label>
+      <select class="point_selector" name="{{ i }}_point">
+        {% for id,name in data.point_names.items() %}
+        <option {{ "selected" if data.point|int == id|int }} value="{{ id }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+      <br/>
+      <label>From:</label>
+      <input type="date" name="{{ i }}_from" value="{{ data.from }}">
+      <label>To:</label>
+      <input type="date" name="{{ i }}_to" value="{{ data.to }}"><br/>
+      <button class="form_submit">Submit</button>
+      <button type="button"
+      class="add-comparison {% if not show_comparison_button %} hidden {% endif %} right">+ Add
+      Comparison
+    </button>
+  </form>
+</div>
+{{ data.plot |indent(4)|safe }}
+</div>
 {% endmacro %}
 
 
 {% macro generate_comparison_selector(data, buildings, timestamps) -%}
-    <div class="result">
-        <form class="building-comparison-select" method="GET">
-            <label>Building:</label>
-            <select class="building_select" name="building" id="building_select">
-                {% for id, name in buildings.items() %}
-                    <option {{ "selected" if data['building']|int == id|int }} value="{{ id }}">{{ name }}</option>
-                {% endfor %}
-            </select>
-            <label>Date:</label>
-            <input type="date" name="date" id="date_select" value="{{ data['date']|e }}">
-            <label>Timestamp:</label>
-            <select class="timestamp-select" name="timestamp" id="timestamp_select">
-                {% for time in timestamps %}
-                    <option value="{{ time }}" {{ "selected" if data['timestamp']|e == time }}>{{ time }}</option>
-                {% endfor %}
-            </select>
-            <div>
-                <label for="detect-anomalies">Detect Anomalies: </label>
-                <input id="detect-anomalies" name="detect-anomalies" type="checkbox" value="True" {{ "checked" if data['detect-anomalies']|e == "True" }}>
+<div class="result params-container">
+  <form class="building-comparison-select" method="GET">
+      <label>Building:</label>
+      <select class="building_select" name="building" id="building_select">
+        {% for id, name in buildings.items() %}
+        <option {{ "selected" if data['building']|int == id|int }} value="{{ id }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+      </br>
+      <label>Date:</label>
+      <input type="date" name="date" id="date_select" value="{{ data['date']|e }}">
+      <label>Timestamp:</label>
+      <select class="timestamp-select" name="timestamp" id="timestamp_select">
+        {% for time in timestamps %}
+        <option value="{{ time }}" {{ "selected" if data['timestamp']|e == time }}>{{ time }}</option>
+        {% endfor %}
+      </select>
+      </br>
+      <div>
+        <label for="detect-anomalies">Detect Anomalies: </label>
+        <input id="detect-anomalies" name="detect-anomalies" type="checkbox" value="True" {{ "checked" if data['detect-anomalies']|e == "True" }}>
 
-            </div>
-            <button class="form_submit">Submit</button>
-        </form>
-    </div>
+      </div>
+    </p>
+    <button class="form_submit">Submit</button>
+  </form>
+</div>
 {% endmacro %}
 
 
 {% macro alert(row) -%}
-    <tr>
-        <td class="dtcell"> {{ row['pointtimestamp'] }}</td>
-        <td>{{ row['pointvalue'] }} </td>
-    </tr>
+<tr>
+  <td class="dtcell"> {{ row['pointtimestamp'] }}</td>
+  <td>{{ row['pointvalue'] }} </td>
+</tr>
 {% endmacro %}
 
 
 {% macro generate_tr(row, anomalous_pts) -%}
 
-    {# Check if a temp 1 RM is anomalous #}
-    {% set ns = namespace(anomalous=false) %}
-    {% for anomaly in anomalous_pts %}
-        {% if "RM" in anomaly and row['name_room'] in anomaly and not "RMT" in anomaly %}
-            {% set ns.anomalous=true %}
+{# Check if a temp 1 RM is anomalous #}
+{% set ns = namespace(anomalous=false) %}
+{% for anomaly in anomalous_pts %}
+{% if "RM" in anomaly and row['name_room'] in anomaly and not "RMT" in anomaly %}
+{% set ns.anomalous=true %}
 
-        {% endif %}
-    {% endfor %}
+{% endif %}
+{% endfor %}
 
-    {% if ns.anomalous == true %}
-        <td class="anomalouscell" headers="room temp">{{ row['room temp'] }}</td>
+{% if ns.anomalous == true %}
+<td class="anomalouscell" headers="room temp">{{ row['room temp'] }}</td>
 
-    {% else %}
-        <td class="dtcell" headers="room temp">{{ row['room temp'] }}</td>
-    {% endif %}
+{% else %}
+<td class="dtcell" headers="room temp">{{ row['room temp'] }}</td>
+{% endif %}
 
-    {# Check if a temp 2 RMT is anomalous #}
-    {% set ns = namespace(anomalous=false) %}
-    {% for anomaly in anomalous_pts %}
-        {% if "RMT" in anomaly and row['name_room'] in anomaly %}
-            {% set ns.anomalous = true %}
-        {% endif %}
-    {% endfor %}
+{# Check if a temp 2 RMT is anomalous #}
+{% set ns = namespace(anomalous=false) %}
+{% for anomaly in anomalous_pts %}
+{% if "RMT" in anomaly and row['name_room'] in anomaly %}
+{% set ns.anomalous = true %}
+{% endif %}
+{% endfor %}
 {#    {% if ns.anomalous == true %}#}
 {#        <td class="anomalouscell" headers="temp1">{{ row['temp2 (RMT)'] }}</td>#}
 {##}
@@ -103,30 +106,29 @@
 {#        <td class="dtcell" headers="temp1">{{ row['temp2 (RMT)'] }}</td>#}
 {#    {% endif %}#}
 
-    {# Check if valve is anomalous #}
-    {% set ns = namespace(anomalous=false) %}
-    {% for anomaly in anomalous_pts %}
-        {% if "RHV" in anomaly and row['name_room'] in anomaly %}
-            {% set ns.anomalous = true %}
-        {% endif %}
-    {% endfor %}
-    {% if ns.anomalous == true %}
-        <td class="anomalouscell" headers="valve">{{ row['valve'] }}</td>
+{# Check if valve is anomalous #}
+{% set ns = namespace(anomalous=false) %}
+{% for anomaly in anomalous_pts %}
+{% if "RHV" in anomaly and row['name_room'] in anomaly %}
+{% set ns.anomalous = true %}
+{% endif %}
+{% endfor %}
+{% if ns.anomalous == true %}
+<td class="anomalouscell" headers="valve">{{ row['valve'] }}</td>
 
-    {% else %}
-        <td class="dtcell" headers="valve">{{ row['valve'] }}</td>
-    {% endif %}
+{% else %}
+<td class="dtcell" headers="valve">{{ row['valve'] }}</td>
+{% endif %}
 
 {% endmacro %}
 
 {# Not currently in use! #}
 {% macro comparison(row) -%}
-    <tr class="room-comparison-row">
-        <td class="dtcell" headers="roomname">{{ row['roomname'] }}</td>
-        <td class="dtcell" headers="pointname">{{ row['pointname'] }}</td>
-        <td class="dtcell" headers="units">{{ row['units'] }}</td>
-        <td class="dtcell" headers="pointvalue">{{ row['pointvalue'] }}</td>
-        <td class="dtcell" headers="description">{{ row['description'] }}</td>
-    </tr>
+<tr class="room-comparison-row">
+  <td class="dtcell" headers="roomname">{{ row['roomname'] }}</td>
+  <td class="dtcell" headers="pointname">{{ row['pointname'] }}</td>
+  <td class="dtcell" headers="units">{{ row['units'] }}</td>
+  <td class="dtcell" headers="pointvalue">{{ row['pointvalue'] }}</td>
+  <td class="dtcell" headers="description">{{ row['description'] }}</td>
+</tr>
 {% endmacro %}
-

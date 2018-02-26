@@ -13,6 +13,7 @@ from bokeh.models import (
     AdaptiveTicker,
     PrintfTickFormatter,
     ColorBar)
+import math
 from .colors import heatmap_colors
 from .api import API
 from .alerts import generate_alerts
@@ -109,8 +110,9 @@ def alerts():
 def filter_df(df, list_of_pointids):
     filtered_dfs = []
     for point_id in list_of_pointids:
-        new_filtered_df = df.query("pointid == {}".format(point_id))
-        filtered_dfs.append(new_filtered_df)
+        if not math.isnan(point_id):
+            new_filtered_df = df.query("pointid == {}".format(point_id))
+            filtered_dfs.append(new_filtered_df)
 
     # Now merge them all together for passing to the anomaly detector.
 
@@ -148,9 +150,8 @@ def room_comparison():
         # TODO: Here we filter the result of the ONE call based on "temp1, temp 2, and valve
         # based on Dustin's new columns
         point_ids_for_valve = search_results["pointid_valve"].tolist()
-        point_ids_for_tmp1 = search_results["pointid_temp1 (RM)"].tolist()
-        point_ids_for_tmp2 = search_results["pointid_temp2 (RMT)"].tolist()
-        point_ids = [point_ids_for_valve, point_ids_for_tmp1, point_ids_for_tmp2]
+        point_ids_for_tmp = search_results["pointid_room temp"].tolist()
+        point_ids = [point_ids_for_valve, point_ids_for_tmp]
 
         for point_id_list in point_ids:
             filtered_df = filter_df(df, point_id_list)
@@ -359,7 +360,7 @@ def get_results_components(searches, search_results, keywords):
     # each search result has a plot, script, and form params
     # we want to create a list of dictionaries
     # where each item in the outer list is a search result
-    # and each in the inner dictionary is a component of that search result, 
+    # and each in the inner dictionary is a component of that search result,
     # ie el['plot'] stores the html code for the graph
     for i in range(len(search_results)):
         result = search_results[i]
