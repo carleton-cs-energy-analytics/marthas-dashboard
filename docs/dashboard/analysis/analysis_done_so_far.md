@@ -82,6 +82,8 @@ See [sklearn documentation page](http://scikit-learn.org/stable/modules/generate
 
 ### R: rpart
 
+Didn't end up using this method because it was slow, but kept code and documentation around because it allows both continuous and categorical input data.
+
 * make sure method="class" parameter is included in rpart call to create classification tree rather than regression tree
 * impossibly slow with continuous data - must bin everything
 * can include categorical data (enumerated data in our DB)
