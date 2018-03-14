@@ -100,23 +100,62 @@ test_tree = rpart(binned_data$EV.RMG07.V ~ binned_data$EV.RMG06.V, method = "cla
 
 We are looking into how we can tell if a point is behaving irregularly.  Being able to look at a time range and select specific points to look at will help reduce the amount of data facilities needs to look at in order to troubleshoot in a given building.  We decided that away to do this in the early stages would be to use kmeans clustering, which is an easy-to implement algorithm that we can use through [sklearn](http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html).  Some research that Kiya looked into can be seen [here](https://docs.google.com/document/d/1pAwgF-BuBvSh6PzzZw4h9ajlyzoIZxXEAbUpgCAs1FU).
 
-We chose this approach because:
+## We researched a few different articles online
+* [Model, Cluster and Compare](https://www.synergylabs.org/yuvraj/docs/Narayanaswamy_BuildSys14_MCC.pdf)
+    * Model data, cluster the model parameters, pick out outliers far from cluster
+    * We can't model the data, but clustering idea is cool
+* [A dissimilarity-based approach](https://arxiv.org/pdf/1701.03633.pdf)
+    * Comparing homogeneous equipment boxes or rooms
+    * Decision tree to classify as faulty or not using dissimilarity to other rooms/equipment
+    * Assumes first n timestamps are normal (for new equipment), we can't do this
+
+## We chose this approach because:
 
 * We don't know enough about our data to develop a model-based detection system
+    * We can't make assumptions about linearity, independence, or that the first n timestamps aren't faulty
 * Clustering is unsupervised, meaning we don't already need to know what points are anomalous
 * By clustering, we don't expect every point to behave exactly the same way but we do expect some patterns between similar points.
 
-## Kmeans
+## K-means Anomaly Detection Algorithm
 
-[Kmeans](https://en.wikipedia.org/wiki/K-means_clustering) is a clustering analysis algorithm that, given data points and a number, n, of desired clusters will categorize m-dimensional data points into n categories.
+[K-means](https://en.wikipedia.org/wiki/K-means_clustering) is a clustering analysis algorithm that, given data points and a number, n, of desired clusters will categorize m-dimensional data points into n categories.
 
-### Insert an example here with a couple pictures
-https://docs.google.com/presentation/d/19NAHDsxQbjwuffGsPYSBg3DXJbbPDzCakr4zOrQdhdE/edit#slide=id.g31e789b1e2_0_1
+We used the sklearn implementation of [k-means](http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html).
 
-### Insert how to run it here
+We then pick out anomalies that are some fraction of the maximum distance away from their cluster center or are greater than some threshold of standard deviations away from the mean distance to their cluster center.
+
+### Parameters
+* If fraction of maximum distance
+    * n_clusters = number of clusters
+    * n_init = number of times to run k-means
+    * percent_threshold = fraction [0,1] where any point that is farther than percent_thresdhold x maximum_distance from the cluster center is anomalous
+    * size_threshold = any cluster with fewer than this many points has all of its points marked as anomalous
+* If threshold of standard deviations
+    * n_clusters = number of clusters
+    * n_init = number of times to run k-means
+    * num_std = any point greater than num_std number of standard deviations farther than the mean distance to its cluster center is anomalous
+    * size_threshold = any cluster with fewer than this many points has all of its points marked as anomalous
+
+### How to run
 
 ```
 analysis/anomaly_detection/anomaly_detection.py
 ```
 
-Follow formatting in plot_cluster to get the data that is shown in above presentation
+## From another file
+
+Call ```return_anomalous_points(df, n_clusters, n_init, std_threshold, size_threshold)```
+
+Only allows for standard deviation threshold for anomaly detection.
+
+Returns a list of names of anomalous points.
+
+## From a main function
+
+Use an existing main function or create your own.
+
+* plot_main()
+    * Currently pulls all room temp points in Evans for January 5, 2018
+        * IDs needed for this might change with database changes
+    * Runs clustering and anomaly detection
+    * Plots each cluster of points separately for the time period with anomalies highlighted in red

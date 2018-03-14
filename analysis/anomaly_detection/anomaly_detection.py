@@ -270,7 +270,7 @@ def cluster_and_plot_anomalies(df, n_clusters, n_init, std_threshold, size_thres
         old_rows = df.shape[0]
         df = df.dropna(axis = 0, how = 'any')
         new_rows = df.shape[0]
-        print("Dropped " + str(old_rows - new_rows) + " rows with NaN values, " + str(new_rows) + " rows remaining")
+        print("Dropped " + str(old_rows - new_rows) + " rows with NaN values, "+ str(new_rows) + " rows remaining")
         clusterings = kmeans.fit_predict(df)
     cluster_centers = kmeans.cluster_centers_.tolist()
     anomalous = std_anomaly_detection(df, clusterings, cluster_centers, std_threshold, size_threshold)
@@ -306,12 +306,13 @@ def return_anomalous_points(df, n_clusters, n_init, std_threshold, size_threshol
 
 
 def plot_main():
-    #df = grabAllPointsInBuildingByType(27, '2017-12-20 00:00', '2017-12-21 00:00', 'ROOM TEMP')
+    # The following code pulls multiple similar points for one day
     df = api.building_values_in_range_by_type(7, '2018-1-5 00:00', '2018-1-6 00:00', 7)
     if df.shape == (0,0):
         print("no values in that range")
         return
     df = pivot_df(df)
+    # The following comments replace the above code to pull multiple days for one point - ID of point needs to change
     # start = date(2017,11,1)
     # end = date(2018,1,31)
     # df = grabAndPivotAllDaysInRangeForPoint(938, start, end)
@@ -320,27 +321,5 @@ def plot_main():
     ylab = "Room temperature"
     cluster_and_plot_anomalies(df, 3, 10, 3,  df.shape[0]*0.03, title, xlab, ylab)
 
-
-def return_main():
-    # df = grabAllPointsInBuildingByType(27, '2017-12-20 00:00', '2017-12-21 00:00', 'ROOM TEMP')
-    #df = pivot_df(df)
-    start = date(2016,6,1)
-    end = date(2016,8,31)
-    df = grabAndPivotAllDaysInRangeForPoint(1652, start, end)
-    #cluster_and_plot_anomalies(df, 4, 10, 3,  df.shape[0]*0.03)
-    an_pt = return_anomalous_points(df, 4, 10, 3, df.shape[0]*0.03)
-    print(an_pt)
-
-def print_df():
-    df = api.building_values_in_range_by_type(7, '2018-1-5 00:00', '2018-1-6 00:00', 7)
-    df = pivot_df(df)
-    df.to_csv("multiple_points.csv")
-    start = date(2018, 1, 1)
-    end = date(2018,1,10)
-    df = grabAndPivotAllDaysInRangeForPoint(200, start, end)
-    df.to_csv("same_point.csv")
-
 if __name__ == '__main__':
-    #plot_anomalies_all(4, 10)
-    #plot_main()
-    print_df()
+    plot_main()
