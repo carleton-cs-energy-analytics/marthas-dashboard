@@ -8,7 +8,7 @@ Run  ```V1_createTables.sql``` on our database.
 Run ```Oopsies.sql``` which will delete everything and start us over.  Beware of oopsies and make sure you really want to reset and not just delete a specific building.  Adding the historical data takes a while, so just be cautious.
 
 ## Database Structure
-We have multiple tables: buildings, rooms, point types, point sources, points, and point values.
+We have multiple tables: buildings, rooms, point types, equipment boxes, point sources, points, and point values.
 
 * **Building**
   * ID
@@ -46,7 +46,7 @@ We have multiple tables: buildings, rooms, point types, point sources, points, a
 
 Everything that is of the form _ _ ID is a reference to another table.
 * A pointvalue has a point.
-* A point has a room, pointsource, equipmentbox, and pointtype.
+* A point has a room, pointsource, equipment, and pointtype.
 * A room has a building.
 
 ## Explanation of Database Structure
@@ -68,7 +68,7 @@ ReturnType tells us whether we should expect a float (numerical) or enumerate (o
   * Units tells us what units that float represents (degrees F, angle open).
   * Factor tells us how far to the left we should move the decimal (multiple by 10^factor) when we take the value out of the table - this is used to make every PointValue an integer
 * If it is enumerated,
-  * units tells us what the indices in the PointValues table's PointValue column should be interpreted as (0 = OFF, 1 = ON).
+  * Units tells us what the indices in the PointValues table's PointValue column should be interpreted as (0 = OFF, 1 = ON).
   * Factor is null
 
 
