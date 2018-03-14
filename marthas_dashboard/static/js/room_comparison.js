@@ -1,43 +1,46 @@
-var comparison_rows = document.getElementsByClassName("room-comparison-row");
+// Not currently in use
 
-if (comparison_rows.length > 0){
-    comparison_rows = comparison_rows[0];
-    comparison_rows.addEventListener("click", constructRoomInspectorURL);
+var comparison_rows = document.getElementsByClassName('room-comparison-row')
+
+if (comparison_rows.length > 0) {
+  comparison_rows = comparison_rows[0]
+  comparison_rows.addEventListener('click', constructRoomInspectorURL)
 }
 
-function constructRoomInspectorURL(e){
+function constructRoomInspectorURL (e) {
 
-    var data = {};
-    var target = e.srcElement || e.target;
-    while (target && target.nodeName !== "TR") {
-        target = target.parentNode;
+  var data = {}
+  var target = e.srcElement || e.target
+  while (target && target.nodeName !== 'TR') {
+    target = target.parentNode
+  }
+  if (target) {
+    var cells = target.getElementsByTagName('td')
+    // Create a tuple of html (headers, value) information
+    for (var i = 0; i < cells.length; i++) {
+      var header = cells[i].headers
+      var value = cells[i].innerHTML
+      data[header] = value
     }
-    if (target) {
-        var cells = target.getElementsByTagName("td");
-        // Create a tuple of html (headers, value) information
-        for (var i = 0; i < cells.length; i++) {
-            var header = cells[i].headers;
-            var value = cells[i].innerHTML;
-            data[header] = value;
-        }
-    }
+  }
 
-    data["date"]= document.getElementById("date_select").value;
-    data["timestamp"] = document.getElementById("timestamp_select").value;
-    data["building"] = document.getElementById("building_select").value;
+  data['date'] = document.getElementById('date_select').value
+  data['timestamp'] = document.getElementById('timestamp_select').value
+  data['building'] = document.getElementById('building_select').value
 
-    var inputs = '?';
+  var inputs = '?'
 
-    for (const key in data) {
-        value = data[key];
-        console.log(value);
-        inputs = inputs + addInputUrl(key, value);
-    }
+  for (const key in data) {
+    value = data[key]
+    console.log(value)
+    inputs = inputs + addInputUrl(key, value)
+  }
 
-    window.location.href = window.location.protocol + "//" + window.location.host + "/room-inspector" + inputs;
+  window.location.href = window.location.protocol + '//' + window.location.host + '/room-inspector' + inputs
 
 }
-function addInputUrl(header, value){
 
-    return header + '=' + value +'&';
+function addInputUrl (header, value) {
+
+  return header + '=' + value + '&'
 }

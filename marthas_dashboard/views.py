@@ -1,30 +1,12 @@
 from marthas_dashboard import app
-from analysis.anomaly_detection.anomaly_detection import return_anomalous_points, pivot_df
-from flask import (request, redirect, url_for, render_template)
-import json
-from bokeh.embed import components
-from bokeh.util.string import encode_utf8
-from bokeh.plotting import figure
-from bokeh.models import (
-    ColumnDataSource,
-    HoverTool,
-    LabelSet,
-    LinearColorMapper,
-    AdaptiveTicker,
-    PrintfTickFormatter,
-    ColorBar)
-from .colors import heatmap_colors
-from .api import API
-from .alerts import generate_alerts
-from .room_comparison import generate_15_min_timestamps
-from . import tools
-import pandas as pd
+from flask import (request, redirect, url_for, render_template, jsonify)
 from werkzeug.contrib.cache import SimpleCache
-import pprint
+from bokeh.util.string import encode_utf8
+from . import tools
+from .api import API
 
 api = API()
 cache = SimpleCache()
-pp = pprint.PrettyPrinter(indent=4)
 
 
 @app.route('/')
@@ -34,404 +16,118 @@ def index():
 
 @app.route('/compare')
 def compare():
-    building_names = api.buildings()
-
-    searches, keywords = create_search_bins(request.args)
-    # Keywords are all the get params that aren't part of the comparison form
-    # eg color map
-    # basically just use them to pass around data to the portion of this that generates the actual graphs
-
-    if len(searches) < 1:
-        searches[0] = {}
-        # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = '6'
-        searches[0]['point'] = '511'
-        searches[0]['from'] = '2017-08-18'
-        searches[0]['to'] = '2017-08-30'
-
-    pp.pprint(searches)
-
-    # do our searches and get the components we need to inject there
-    search_results = do_searches(searches)
-
-    keywords['graphtype'] = 'compare'
-    results_components = get_results_components(searches, search_results, keywords)
-
-    # get our json for all rooms and points
-    # so that we can change the values of the select fields based on other values
-    rooms_points = get_rooms_points(building_names)
-
-    json_res = rooms_points_json(rooms_points)
-
-    html = render_template(
-        'point_compare.html',
-        buildings=building_names,
-        scripts=json_res,
-        result_components=results_components,
-        allow_comparisons=True
-    )
+    selector_data = get_selector_data()  # generate/retrieve data for selector menu
+    default_data = {'building': '6', 'point': '305', 'from': '2017-08-18', 'to': '2017-08-30'}
+    html = render_template('point_compare.html', selector_data=selector_data, data=default_data)
     return encode_utf8(html)
 
 
 @app.route('/alerts')
 def alerts():
-    building_names = api.buildings()
-
-    searches, keywords = create_search_bins(request.args)
-
-    # Made an attempt at not hard coding values using this style
-    building_name_by_id = api.buildings()
-    building_id_by_name = {v: k for k, v in building_name_by_id.items()}
-    building_names_ = list(building_id_by_name.keys())
-
-    if len(searches) < 1:
-        searches[0] = {}
-        # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = building_id_by_name['Gould Library']
-        searches[0]['point'] = api.building_points('16').loc[0, 'id']
-        searches[0]['from'] = '2017-08-18'
-        searches[0]['to'] = '2017-08-30'
-
-    # do our searches and get the components we need to inject there
-    search_results = do_searches(searches)
-    keywords['graphtype'] = 'compare'
-    keywords['alerts'] = True
-
-    results_components = get_results_components(searches, search_results, keywords)
-
-    # get our json for all rooms and points
-    # so that we can change the values of the select fields based on other values
-    rooms_points = get_rooms_points(building_names)
-    json_res = rooms_points_json(rooms_points)
-
-    html = render_template(
-        'alerts.html',
-        buildings=building_names,
-        scripts=json_res,
-        result_components=results_components,
-        allow_comparisons=True
-    )
-    return encode_utf8(html)
-
-
-def filter_df(df, list_of_pointids):
-    filtered_dfs = []
-    for point_id in list_of_pointids:
-        new_filtered_df = df.query("pointid == {}".format(point_id))
-        filtered_dfs.append(new_filtered_df)
-
-    # Now merge them all together for passing to the anomaly detector.
-
-    filtered_df = pd.concat(filtered_dfs)
-
-    return filtered_df
-
-
-@app.route('/room_comparison')
-def room_comparison():
-    building_names = api.buildings()
-    times = generate_15_min_timestamps()  # Call helper function in room_comparison.py
-
-    searches = request.args
-    print("Searches: ", searches)
-
-    # Just set some defaults if we didn't have any searches (I.e. this is the first loading)
-    if len(searches) < 1:
-        searches = {
-            'building': api.building('Evans Hall').id,
-            'date': '2017-12-26',
-            'timestamp': '00:00:00'}
-
-    # do our searches and get the dataframe back
-    search_results = tools.get_room_comparison_results(searches)
-
-    result_components = searches  # Save and pass back the values for the html form.
-
-    anomalous_pts = []
-    if "detect-anomalies" in searches:
-        start_date = searches["date"] + " 00:00:00"
-        end_date = searches["date"] + " 23:45:00"
-        df = api.building_values_in_range(searches["building"], start_date, end_date)
-
-        # TODO: Here we filter the result of the ONE call based on "temp1, temp 2, and valve
-        # based on Dustin's new columns
-        point_ids_for_valve = search_results["pointid_valve"].tolist()
-        point_ids_for_tmp1 = search_results["pointid_temp1 (RM)"].tolist()
-        point_ids_for_tmp2 = search_results["pointid_temp2 (RMT)"].tolist()
-        point_ids = [point_ids_for_valve, point_ids_for_tmp1, point_ids_for_tmp2]
-
-        for point_id_list in point_ids:
-            filtered_df = filter_df(df, point_id_list)
-            # Pivot the dataframe into the shape that the anomaly detection needs it to be.
-            pivoted_df = pivot_df(filtered_df)
-
-            # If less than 3% of the points are taking up one cluster, then:
-            size_threshold = pivoted_df.shape[0] * 0.03
-
-            # See the function analysis.anomaly_detection.anomaly_detection.py for details on what these values mean.
-            anomalous_pts.append(return_anomalous_points(
-                pivoted_df, n_clusters=4, n_init=10,
-                std_threshold=3, size_threshold=size_threshold))
-
-        concat_arrays = []
-        for array in anomalous_pts:
-            for item in array:
-                concat_arrays.append(item)
-        anomalous_pts = concat_arrays
-
-    html = render_template(
-        'room_comparison.html',
-        buildings=building_names,
-        result_components=result_components,
-        dataframe=search_results,
-        anomalous_pts=anomalous_pts,
-        timestamps=times,
-    )
-    return encode_utf8(html)
-
-
-@app.route('/room-inspector')
-def room_inspector():
-    searches = request.args
-
-    print(searches)
-
-    building_name = api.buildings()[int(searches['building'])]
-    search_results = tools.get_room_inspector_results(searches)
-    script, div = tools.make_all_room_inspector_graphs(search_results)
-    html = render_template(
-        "room_inspector.html",
-        searches=searches,
-        building_name=building_name,
-        script=script, div=div)
+    selector_data = get_selector_data()  # generate/retrieve data for selector menu
+    default_data = {'building': '6', 'point': '305', 'from': '2017-08-18', 'to': '2017-08-30'}
+    html = render_template('alerts.html', selector_data=selector_data, data=default_data)
     return encode_utf8(html)
 
 
 @app.route('/heatmap')
 def heatmap():
-    building_names = api.buildings()
+    selector_data = get_selector_data()  # generate/retrieve data for selector menu
+    default_data = {'building': '6', 'point': '305', 'from': '2017-08-18', 'to': '2017-08-30'}
+    html = render_template('heatmap.html', selector_data=selector_data, data=default_data)
+    return encode_utf8(html)
 
-    # Made an attempt at not hard coding values using this style
-    building_name_by_id = api.buildings()
-    building_id_by_name = {v: k for k, v in building_name_by_id.items()}
-    building_names_ = list(building_id_by_name.keys())
 
-    searches, keywords = create_search_bins(request.args)
-    if len(searches) < 1:
-        searches[0] = {}
-        # Just set some defaults if we didn't have any searches
-        searches[0]['building'] = building_id_by_name['Gould Library']
-        searches[0]['point'] = api.building_points('16').loc[0, 'id']
-        searches[0]['from'] = '2017-08-18'
-        searches[0]['to'] = '2017-08-30'
-    searches = [searches[0]]
+@app.route('/_make_compare_plot/', methods=['GET', 'POST'])
+def make_compare_plot():
+    """Creates a line plot for point compare page."""
 
-    # do our searches and get the coponents we need to inject there
-    search_results = do_searches(searches)
-    keywords['graphtype'] = 'heatmap'
-    results_components = get_results_components(searches, search_results, keywords)
+    search = request.args
+    data = api.point_values(search['point'], search['from'], search['to'])
 
-    # get our json for all rooms and points
-    # so that we can change the values of the select fields based on other values
-    rooms_points = get_rooms_points(building_names)
-    json_res = rooms_points_json(rooms_points)
+    if len(data) == 0:
+        return jsonify(script=None, plot="Sorry, no data!", table=None)
+
+    if search['tool'] == 'compare':
+        script, plot = tools.generate_line_graph(data)
+        return jsonify(script=script, plot=plot, table=None)
+
+    if search['tool'] == 'alerts':
+        script, plot = tools.generate_line_graph(data)
+        table = tools.generate_alerts(data)
+        return jsonify(script=script, plot=plot, table=table)
+
+    if search['tool'] == 'heatmap':
+        script, plot = tools.generate_heatmap(data, keywords=[])
+        return jsonify(script=script, plot=plot, table=None)
+
+    print("Error with plot generation.")
+
+
+@app.route('/room_comparison')
+def room_comparison():
+    selector_data = get_selector_data()  # generate/retrieve data for selector menu
+    times = tools.generate_15_min_timestamps()  # Call helper function in room_comparison.py
+
+    default_data = {
+        'building': api.building('Evans Hall').id,
+        'date': '2017-12-26',
+        'timestamp': '00:00:00'}
 
     html = render_template(
-        'heatmap.html',
-        buildings=building_names,
-        scripts=json_res,
-        result_components=results_components,
-        allow_comparisons=False
-    )
+        'room_compare.html', selector_data=selector_data,
+        data=default_data, timestamps=times)
 
     return encode_utf8(html)
 
 
-def generate_figure(data, keywords):
-    if keywords['graphtype'] == 'heatmap':
-        return generate_heatmap(data, keywords)
-    return generate_line_graph(data, keywords)
-
-
-def generate_heatmap(data, keywords):
-    colors = heatmap_colors
-    colorkey = 'red-blue'
-    data = data.sort_values(by='pointtimestamp')
-
-    if 'color' in keywords:
-        if keywords['color'] in colors:
-            colorkey = keywords['color']
-    mapper = LinearColorMapper(palette=colors[colorkey], low=data['pointvalue'].min(), high=data['pointvalue'].max())
-
-    if data['pointvalue'].min() == data['pointvalue'].max():
-        mapper = LinearColorMapper(
-            palette=colors[colorkey], low=data['pointvalue'].min() - 1,
-            high=data['pointvalue'].max() + 1)
-
-    source = ColumnDataSource(data)
-    TOOLS = "hover,save,pan,box_zoom,reset,wheel_zoom"
-    p = figure(
-        title=data['pointname'][0],
-        y_range=list(reversed(data['date'].unique())), x_range=list(data['time'].unique()),
-        x_axis_location="above", plot_width=1000, plot_height=700,
-        tools=TOOLS, toolbar_location='below', sizing_mode='scale_width')
-    p.grid.grid_line_color = None
-    p.axis.axis_line_color = None
-    p.axis.major_tick_line_color = None
-    p.axis.major_label_text_font_size = "5pt"
-    p.axis.major_label_standoff = 0
-    p.xaxis.major_label_orientation = 3.14 / 3
-    p.xgrid.grid_line_color = None
-
-    p.rect(x="time", y="date", width=1, height=.95,
-           source=data,
-           fill_color={'field': 'pointvalue', 'transform': mapper},
-           line_color=None)
-
-    p.select_one(HoverTool).tooltips = [
-        ('date', '@date @time'),
-        ('pointvalue', '@pointvalue ' + data['units'][0]),
-    ]
-
-    color_bar = ColorBar(
-        color_mapper=mapper, ticker=AdaptiveTicker(),
-        formatter=PrintfTickFormatter(format="%d " + data['units'][0]),
-        label_standoff=15, location=(0, 0))
-
-    p.add_layout(color_bar, 'right')
-    script, plot = components(p)
-    color_picker = "Colors: <select class='color-picker' name='color'>"
-    for color in colors:
-        selected = ''
-        if colorkey == color:
-            selected = 'selected'
-        color_picker += "<option value='" + color + "' " + selected + ">" + color.title() + "</option>"
-    color_picker += "</select>"
-    plot = color_picker + plot
-    return script, plot  # Embed figure in template
-
-
-def generate_line_graph(data, keywords):
-    x = data['pointtimestamp']
-    y = data['pointvalue']
-    data['pointtime'] = data['date'] + " " + data['time']
-
-    # Make figure
-    hover = HoverTool(
-        tooltips=[('Date', '@pointtime'), ('Value', '$y')], mode='vline')
-    plot_tools = ['pan', 'box_zoom', 'wheel_zoom', 'save', 'reset', 'lasso_select', hover]
-
-    fig = figure(
-        plot_width=600, plot_height=600, x_axis_type="datetime",
-        tools=plot_tools)
-    source = ColumnDataSource(data)
-    labels = LabelSet(x="pointvale", y="pointtimestamp", text="pointtime", y_offset=8,
-                      text_font_size="8pt", text_color="#555555",
-                      source=source, text_align='center')
-    fig.line('pointtimestamp', 'pointvalue', source=source, color="navy", alpha=0.5)
-    fig.toolbar.logo = None
-    return components(fig)  # Embed figure in template
-
-
-def create_search_bins(args):
-    """Takes requests.args dictionary as argument"""
-    search_bins = {}
-    other_args = {}
-    # each arg is formatted as formnum_attribute
-    # where the form number is 0 for original, 1 for first comparison, etc.
-    # and the attribute is something like start_date, end_date
-    # ex 1_start_date is a valid arg
-    # first step is to bin all the attributes for a form together
-    for key, value in args.items():
-        search_number = key.split('_')[0]
-        attribute_name = key.replace(search_number + "_", "", 1)
-        try:
-            search_number = int(search_number)
-            if search_number not in search_bins:
-                search_bins[search_number] = {}
-            search_bins[search_number][attribute_name] = value
-        except ValueError as e:
-            other_args[key] = value
-    return search_bins, other_args
-
-
-def do_searches(search_bins):
-    results = []
-    # traverse in order so that the comparison and original don't flip screen position
-    for i in range(len(search_bins)):
-        search = search_bins[i]
-        # in the future we'll want to be able to figure out the type of query that we want to do
-        # based on their restrictions
-        # for now just assume everything is a point values search
-        data = api.point_values(search['point'], search['from'], search['to'])
-        results.append(data)
-    return results
-
-
-def get_results_components(searches, search_results, keywords):
-    """from all of our data, generates plots, scripts
-    and everything that we actually need to inject into the page"""
-
-    parts = []
-
-    # each search result has a plot, script, and form params
-    # we want to create a list of dictionaries
-    # where each item in the outer list is a search result
-    # and each in the inner dictionary is a component of that search result, 
-    # ie el['plot'] stores the html code for the graph
-    for i in range(len(search_results)):
-        result = search_results[i]
-        # as a default we want all the restrictions that the user specified
-        # already have these in our searches, so just copy them over
-        result_components = searches[i]
-        # we also want all of the buildings points so that we can select the correct one
-        result_components['point_names'] = map_points(api.building_points(result_components['building']))
-
-        if len(result) <= 1:
-            # no data associated with search, makes it easy
-            result_components['plot'] = 'No data for that search'
-            result_components['script'] = ''
+@app.route('/_make_room_compare_table/', methods=['GET', 'POST'])
+def make_room_compare_table():
+    search = request.args
+    print(search)
+    try:
+        df = tools.get_room_comparison_results(search)
+        if search.get('detect-anomalies'):
+            df = tools.get_anomalous_points(df, search)  # adds anomaly columns
         else:
-            result_components['script'], result_components['plot'] = generate_figure(result, keywords)
-            if 'alerts' in keywords:
-                result_components['alerts'] = generate_alerts(result, keywords)
-        parts.append(result_components)
-    return parts
+            df['room_temp_anomalous'] = False  # add anomaly columns set to false
+            df['valve_anomalous'] = False
+        table = df.to_json(orient='index')
+        return table
+    except ValueError:
+        return jsonify(None)
 
 
-def get_rooms_points(buildings):
-    """maps building ids to their points and rooms,
-    ie {4:{'rooms':{5}}}"""
-    result = {}
-    for building_id, name in buildings.items():
-        building_data = cache.get('building_data_' + str(building_id))
-        if building_data is None:
-            building_data = {
-                'rooms': map_rooms(api.building_rooms(building_id)),
-                'points': map_points(api.building_points(building_id))
-            }
-            cache.set('building_data_' + str(building_id), building_data)
-        result[building_id] = building_data
-    return result
+@app.route('/_make_room_compare_plots/', methods=['GET', 'POST'])
+def make_room_compare_plots():
+    searches = request.args
+    search_results = tools.get_room_inspector_results(searches)
+    script, div = tools.make_all_room_inspector_graphs(search_results)
+    return jsonify(script=script, plot=div)
 
 
-def map_points(points):
-    """Take a pandas df returned from building_points
-    and turn it into something easier to use on the frontend
-    """
-    results = {}
-    for index, row in points.iterrows():
-        results[row['id']] = row['name'] + '- ' + row['description']
-    return results
+def get_selector_data(timeout_mins=10):
+    """Get data about building/point names to populate menus.
+    Makes use of caching to store this info for a while."""
+    selector_dict = cache.get('selector_data')
+    if selector_dict is None:
+        selector_dict = create_selector_data_dict()
+        cache.set('selector_data', selector_dict, timeout=timeout_mins * 60)
+    return selector_dict
 
 
-def map_rooms(rooms):
-    """Similar to the map_points function but for rooms"""
-    results = {}
-    for index, row in rooms.iterrows():
-        results[row['id']] = row['name'].replace("_", " ")
-    return results
-
-
-def rooms_points_json(rooms_points):
-    return '<script type="text/javascript">var rooms_points =' + json.dumps(rooms_points) + ';</script>'
+def create_selector_data_dict():
+    """Called by get_selector_data.
+    Uses api to build dict of building, room, and id data for menus."""
+    data_dict = {}
+    buildings_dict = api.buildings()
+    for building_id, building_name in buildings_dict.items():
+        points_df = api.building_points(building_id)
+        points_dict = points_df.set_index('id').to_dict(orient='index')
+        rooms_df = api.building_rooms(building_id)
+        rooms_dict = rooms_df.set_index('id').to_dict(orient='index')
+        data_dict[building_id] = {
+            'name': building_name,
+            'points': points_dict,
+            'rooms': rooms_dict}
+    return data_dict

@@ -1,34 +1,37 @@
 {% extends "base.html" %}
 {% import 'macros.html' as macros %}
-{% block alerts_active %}active{% endblock %}
-{% block page_title %}Alerts{% endblock %}
+{% block room_active %}active{% endblock %}
+{% block page_title %}Room Compare{% endblock %}
 
 {% block content %}
   <div class="row justify-content-between">
     <div class="col-md-6">
-      {{ macros.selector(0, selector_data, data, toggle=False, tool="alerts") }}
+      {{ macros.generate_room_compare_selector(selector_data, data, timestamps) }}
     </div>
     <div class="col-md-5">
       <button data-toggle="collapse" class="btn btn-outline-dark btn-block" data-target="#aboutAlerts">
         <i data-feather="info"></i> About this tool
       </button>
       <div id="aboutAlerts" class="collapse alert alert-info">
-        <p>Points more than three standard deviations from average will appear here.</p>
+        <p>Here, staff can examine radiator valve percentage and room temp for the rooms in a given building
+          at a given time. Clicking a row will bring up a 24-hour view.</p>
       </div>
     </div>
   </div>
   <div class="row">
-    <div class="col">
-      <span id="plot-0"></span>
+    <div class="col-md-6">
+      <span id="compare-table"></span>
     </div>
-    <div class="col">
-      <span id="alerts-table"></span>
+    <div class="col-md-6">
+      <span id="rmComparePlotsTitle"></span>
+      <span id="rmComparePlots"></span>
     </div>
   </div>
 {% endblock %}
 
+
 {% block jsvars %} var selectorData = {{ selector_data|tojson }} {% endblock %}
 
 {% block pl_script %}
-  <span id="script-0"></span>
+  <span id="rmCompareScript"></span>
 {% endblock %}

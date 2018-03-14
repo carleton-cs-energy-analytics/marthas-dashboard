@@ -1,3 +1,5 @@
+numpy
+werkzeug
 flask
 bokeh
 requests

@@ -1,13 +1,21 @@
-{% extends "chart.html" %}
+{% extends "base.html" %}
+{% import 'macros.html' as macros %}
 {% block heatmap_active %}active{% endblock %}
 {% block page_title %}Heatmap{% endblock %}
 
 {% block content %}
-    <div class="row">
-        {% for item in result_components %}
-            <div class="col-md">
-                {{ macros.data_filter(item, buildings, loop.index0, allow_comparisons, False, loop.length <= 1 and allow_comparisons) }}
-            </div>
-        {% endfor %}
+  <div class="row">
+    <div class="col-md-6">
+      {{ macros.selector(0, selector_data, data, toggle=False, tool='heatmap') }}
     </div>
+  </div>
+  <span id="plot-0"></span>
+{% endblock %}
+
+{% block jsvars %} var selectorData = {{ selector_data|tojson }} {% endblock %}
+
+
+{% block pl_script %}
+  <span id="script-0"></span>
+  <span id="script-1"></span>
 {% endblock %}

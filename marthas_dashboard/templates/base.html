@@ -1,96 +1,103 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <!-- Bokeh -->
-    <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.css">
-    <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.css">
-    <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.11.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" type="text/css" href="/static/css/dashboard.css">
-    <!-- Icons -->
-    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <!-- Bokeh -->
+  <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.css">
+  <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.css">
+  <link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.11.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  <!-- Icons -->
+  <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 
-    <title>Martha's Dashboard</title>
+  <title>Martha's Dashboard</title>
 </head>
 <body>
 
-{#<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">#}
-{#    <a class="navbar-brand mr-0" href="#">Martha's Dashboard</a>#}
-{#</nav>#}
-
 <header class="bg-dark text-light sticky-top p-0">
-    <div class="container-fluid text-center">
-        <h4 class="my-0">
-            <a href="{{ url_for('index') }}" class="text-light">
-                Energy Analytics Dashboard
-            </a>
-        </h4>
-        <p class="my-0">
-            <i data-feather="chevrons-right"></i>
-            {% block page_title %}{% endblock %}
-            <i data-feather="chevrons-left"></i>
-        </p>
-    </div>
+  <div class="container-fluid text-center">
+    <h4 class="my-0">
+      <a href="{{ url_for('index') }}" class="text-light">
+        Energy Analytics Dashboard
+      </a>
+    </h4>
+    <p class="my-0">
+      <i data-feather="chevrons-right"></i>
+      {% block page_title %}{% endblock %}
+      <i data-feather="chevrons-left"></i>
+    </p>
+  </div>
 </header>
 
-<div class="container-fluid">
-    <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-            <div class="sidebar-sticky mt-5">
-                <ul class="nav flex-column">
-                    <div id="fullSidebar">
-                        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                            <span>Tools</span>
-                            <a class="d-flex align-items-center text-muted" href="#"></a>
-                        </h6>
-                        <div class="dropdown-divider"></div>
-                        <li class="nav-item">
-                            <a class="nav-link {% block compare_active %}{% endblock %}"
-                               href="{{ url_for('compare') }}">
-                                <i data-feather="bar-chart"></i> Graph
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% block heatmap_active %}{% endblock %}"
-                               href="{{ url_for('heatmap') }}">
-                                <i data-feather="thermometer"></i> Heatmap
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% block room_active %}{% endblock %}"
-                               href="{{ url_for('room_comparison') }}">
-                                <i data-feather="grid"></i> Rooms
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {% block alerts_active %}{% endblock %}"
-                               href="{{ url_for('alerts') }}">
-                                <i data-feather="alert-circle"></i> Alerts
-                            </a>
-                        </li>
-                    </div>
-                </ul>
-            </div>
-        </nav>
 
-        <main role="main" class="col-md-10 ml-sm-auto pt-3 px-4">
-            {% block content %}{% endblock %}
-        </main>
-    </div>
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+      <div class="sidebar-sticky mt-5">
+        <ul class="nav flex-column">
+          <div id="fullSidebar">
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              <span>Tools</span>
+              <a class="d-flex align-items-center text-muted" href="#"></a>
+            </h6>
+            <div class="dropdown-divider"></div>
+            <li class="nav-item">
+              <a class="nav-link {% block compare_active %}{% endblock %}"
+                 href="{{ url_for('compare') }}">
+                <i data-feather="bar-chart"></i> Graph
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% block alerts_active %}{% endblock %}"
+                 href="{{ url_for('alerts') }}">
+                <i data-feather="alert-circle"></i> Alerts
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% block heatmap_active %}{% endblock %}"
+                 href="{{ url_for('heatmap') }}">
+                <i data-feather="thermometer"></i> Heatmap
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% block room_active %}{% endblock %}"
+                 href="{{ url_for('room_comparison') }}">
+                <i data-feather="grid"></i> Rooms
+              </a>
+            </li>
+          </div>
+        </ul>
+      </div>
+    </nav>
+
+    <main role="main" class="col-md-10 ml-sm-auto pt-3 px-4">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
 </div>
 
+<script>
+  {% block jsvars %}{% endblock %}
+</script>
 
-<!-- Load some JavaScript -->
+<!-- Where is my site? -->
+<script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
+
+<!--jQuery -->
+<script type=text/javascript src="{{ url_for('static', filename='js/jquery-3.3.1.min.js') }}"></script>
+
 <!-- jQuery, Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
+{#<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"#}
+{#        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"#}
+{#        crossorigin="anonymous"></script>#}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
         crossorigin="anonymous"></script>
@@ -98,14 +105,18 @@
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
 <!-- Bokeh -->
-<script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.11.min.js"></script>
-<script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.11.min.js"></script>
-<script src="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.11.min.js"></script>
+<script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.14.min.js"></script>
+{#<script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.14.min.js"></script>#}
+{#<script src="http://cdn.pydata.org/bokeh/release/bokeh-tables-0.12.14.min.js"></script>#}
 <!-- May have to add more scripts for Bokeh plots -->
 {% block pl_script %}{% endblock %}
 
+<!-- Custom JS -->
+<script type=text/javascript src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script type=text/javascript src="{{ url_for('static', filename='js/sorttable.js') }}"></script>
+
 <script>
-    feather.replace()
+  feather.replace()
 </script>
 
 </body>
