@@ -4,9 +4,13 @@
 
 [About Orange](https://github.com/biolab/orange3-associate/blob/master/orangecontrib/associate/fpgrowth.py)
 
+## Using the code
+
+#### NOTE: This is not what we ended up using since the Orange widget is faster
+
 In ```Association_Rules_Orange.py``` we have our association rules algorithm, which uses the API to obtain a dataframe of points and pointvalues, converts that into an Orange Table, uses binning and one-hot-encoding in order to prep the data for the algorithms.  We then use Orange to get a frequent itemset which is a list of pointvalues (post binning and encoding) that are often found together.  This frequent itemset is then used to generate our association rules, which are lists of commonly seen occurrences, like if point1 in bin 1 and point2 in bin2 then point3 in bin3.  
 
-## To use this code:
+### To use this code:
 
 From [marthas-dashboard](https://github.com/carleton-cs-energy-analytics/marthas-dashboard.git):
 
@@ -18,7 +22,7 @@ python3 -m marthas_dashboard.analysis.Association_Rules_Orange.py
 
 To change the points, change the building id or the times given
 
-## To expand this code for other types of our data:
+### To expand this code for other types of our data:
 
 * SHOULD be able to follow along general guideline outlined below (using functions in the specified file)
 * Just change the ```getDFBuildingValuesInRange``` to another api calling method of your choice (and be sure to clean/pivot the data)
@@ -35,11 +39,17 @@ rules = getAssociationRules(itemsets, class_items)
 pretty_print_rules(data_table, mapping, rules)
 ```
 
-## Parameters
-.....TODO
+## Using the Orange3 Widget
+This is a much faster way of running association rules.
 
-### Using the Orange3 Widget
-This is a much faster way of running association rules.  The only issue is that we will only be able to look at 100 rules at a time, but we can use filtering of both input and output to look at a subset of the rules that might interest us
+Issues:
+* We will only be able to look at 100 rules at a time
+* Too many rules have too high of support and are not interesting
+    * For example, all of permutations of sets of equipment that is 0 for the whole day
+* Can only export rules in PDF or HTML
+* Can only export rules 500 at a time
+
+Would have to filter input data better in order to use this.
 
 # Decision Trees
 
